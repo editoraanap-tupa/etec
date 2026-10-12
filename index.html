@@ -289,6 +289,34 @@ details.orig .qimg { margin-top: 8px; }
 .kid-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; font-size: .84rem; color: var(--ink-soft); }
 .kid-stats b { display: block; font-family: var(--f-display); font-size: 1.25rem; color: var(--ink); }
 .kid .msg { white-space: pre-wrap; }
+.pv { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 640px) { .pv { grid-template-columns: minmax(0, 1fr); } }
+.pv-card { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 8px; align-content: start; }
+.pv-card.wide { grid-column: 1 / -1; }
+.pv-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pv-big { font-family: var(--f-display); font-weight: 800; font-size: 2rem; line-height: 1.05; color: var(--ink); }
+.pv-big small { font-size: .95rem; font-weight: 600; color: var(--ink-soft); }
+.pv-txt { font-size: .95rem; color: var(--ink); }
+.t-ok { color: var(--ok); } .t-err { color: var(--bad); }
+.pv-pill { font-family: var(--f-display); font-weight: 700; font-size: .78rem; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.pv-pill.good { background: var(--ok-wash, #dff5e8); color: var(--ok); } .pv-pill.mid { background: var(--sun-wash); color: #8a5a00; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pv-pill.mid { color: var(--sun); } }
+:root[data-theme="dark"] .pv-pill.mid { color: var(--sun); }
+.pv-pill.bad { background: var(--bad-wash, #fde2e2); color: var(--bad); } .pv-pill.none { background: var(--brand-wash); color: var(--ink-soft); }
+.pv-bar { position: relative; display: flex; gap: 2px; height: 14px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.pv-bar i { display: block; height: 100%; } .pv-bar i:first-child { border-radius: 999px 0 0 999px; }
+.pv-bar .ok, .pv-bar .good { background: var(--ok); } .pv-bar .err, .pv-bar .bad { background: var(--bad); } .pv-bar .mid { background: var(--sun); } .pv-bar .done { background: var(--brand); }
+.pv-bar.plan { overflow: visible; } .pv-bar .mark { position: absolute; top: -4px; width: 3px; height: 22px; background: var(--ink); border-radius: 2px; transform: translateX(-1px); }
+.pv-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.pv-day { display: grid; justify-items: center; gap: 2px; padding: 6px 2px; border-radius: 10px; border: 2px solid transparent; font-size: .72rem; color: var(--ink-soft); background: var(--sheet); }
+.pv-day b { font-family: var(--f-display); font-size: 1.05rem; color: var(--ink); }
+.pv-day small { font-size: .62rem; }
+.pv-day.good { background: var(--ok-wash, #dff5e8); } .pv-day.good small { color: var(--ok); font-weight: 700; font-size: .85rem; }
+.pv-day.mid { background: var(--sun-wash); } .pv-day.today { border-color: var(--brand); }
+.pv-area { display: grid; grid-template-columns: 7.5em minmax(0, 1fr) 3em auto; grid-template-areas: "nm bar v pill" "nm sm sm sm"; gap: 2px 10px; align-items: center; padding: 4px 0; }
+.pv-area .nm { grid-area: nm; font-weight: 700; color: var(--area, var(--ink)); } .pv-area .pv-bar { grid-area: bar; } .pv-area .v { grid-area: v; text-align: right; font-family: var(--f-mono); font-weight: 600; }
+.pv-area .pv-pill { grid-area: pill; } .pv-area small { grid-area: sm; color: var(--ink-soft); font-size: .8rem; }
+@media (max-width: 520px) { .pv-area { grid-template-columns: minmax(0, 1fr) 3em; grid-template-areas: "nm pill" "bar v" "sm sm"; } .pv-area .pv-pill { justify-self: end; } }
 .pg-wrap { display: grid; gap: 8px; }
 .kid { --pg-a: #00796b; --pg-e: #e8303a; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .kid { --pg-a: #4be38a; --pg-e: #ff5a5f; } }
@@ -1070,80 +1098,39 @@ function progressSeries(p) {
   const left = n - 1 - ti;
   return { pts, ti, n, left, avgQ, avgA, avgE, peak: Math.max(...pts.slice(0, ti + 1).map(x => x.q)) };
 }
-function progressChart(p, Wp) {
-  /* Uma barra por dia: verde = certas, vermelho = erros (altura total = questões feitas). Linha tracejada = meta diária.
-     Depois de hoje, barras claras com a previsão pela média dos últimos 7 dias. */
-  const S = progressSeries(p), W = Wp || 600, H = W < 450 ? 220 : 240, L = 30, R = W < 450 ? 56 : 64, T = 14, B = 26;
-  const ymax = Math.max(p.goal, S.peak, 10) * 1.12, xw = W - L - R, yh = H - T - B;
-  const slot = xw / S.n, bw = Math.max(2, slot - (slot > 5 ? 2 : 1)), r = Math.min(3, bw / 2);
-  const X = i => L + i * slot + (slot - bw) / 2, Y = v => T + yh - v / ymax * yh;
-  const step = ymax > 80 ? 20 : 10;
-  let grid = ""; for (let v = 0; v <= ymax; v += step) grid += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" class="pg-grid"/><text x="${L - 6}" y="${Y(v) + 4}" class="pg-ax" text-anchor="end">${v}</text>`;
-  const ticks = (W < 450 ? [0, Math.round((S.n - 1) / 2), S.n - 1] : [0, Math.round((S.n - 1) / 3), Math.round(2 * (S.n - 1) / 3), S.n - 1]).filter((v, i, a) => a.indexOf(v) === i);
-  const cx = i => X(i) + bw / 2;
-  const xt = ticks.map(i => `<text x="${cx(i)}" y="${H - 8}" class="pg-ax" text-anchor="${i === 0 ? "start" : i === S.n - 1 ? "end" : "middle"}">${i === S.n - 1 ? "prova " : ""}${br(S.pts[i].k)}</text>`).join("");
-  // barra com topo arredondado, base reta
-  const bar = (x, y0, h, cls, top) => { if (h <= 0) return ""; const y = y0 - h, rr = top ? Math.min(r, h) : 0;
-    return `<path class="${cls}" d="M${x} ${y0}V${y + rr}${rr ? `Q${x} ${y} ${x + rr} ${y}H${x + bw - rr}Q${x + bw} ${y} ${x + bw} ${y + rr}` : `H${x + bw}`}V${y0}Z"/>`; };
-  let bars = "";
-  S.pts.forEach((pt, i) => {
-    const x = X(i), base = Y(0);
-    if (i <= S.ti) {
-      const ha = pt.a / ymax * yh, he = pt.e / ymax * yh, gap = ha > 0 && he > 0 ? 1.5 : 0;
-      bars += bar(x, base, ha, "pg-b-a", he <= 0) + bar(x, base - ha - gap, Math.max(0, he - (gap ? 0 : 0)), "pg-b-e", true);
-    } else bars += bar(x, base, pt.pq / ymax * yh, "pg-b-p", true);
-  });
-  const lab = (y, txt) => `<text x="${W - R + 6}" y="${y + 4}" class="pg-lab">${txt}</text>`;
-  return `<div class="pg"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Questões por dia de ${esc(p.name)} até a prova: meta de ${p.goal} por dia; média recente de ${S.avgQ} feitas, ${S.avgA} certas e ${S.avgE} erros.">
-    ${grid}${xt}${bars}
-    <line x1="${L}" x2="${W - R}" y1="${Y(p.goal)}" y2="${Y(p.goal)}" class="pg-l pg-m"/>
-    ${lab(Y(p.goal), `Meta ${p.goal}`)}${S.n - 1 > S.ti && Math.abs(Y(S.avgQ) - Y(p.goal)) > 14 ? lab(Y(S.avgQ), `≈${S.avgQ}`) : ""}
-    <line x1="${cx(S.ti)}" x2="${cx(S.ti)}" y1="${Y(0) + 2}" y2="${Y(0) + 7}" class="pg-today"/>
-    <g class="pg-hover" visibility="hidden"><rect class="pg-cross" y="${T}" height="${yh}" width="${slot}"/></g>
-    <rect x="${L}" y="${T}" width="${xw}" height="${yh}" fill="transparent" class="pg-hit"/>
-  </svg><div class="pg-tip" hidden></div></div>`;
-}
-function wireProgressChart(box, p) {
-  const S = progressSeries(p), svg = box.querySelector("svg"), tip = box.querySelector(".pg-tip"), hov = svg.querySelector(".pg-hover"), cross = svg.querySelector(".pg-cross");
-  const W = svg.viewBox.baseVal.width, L = 30, R = W < 450 ? 56 : 64, xw = W - L - R, slot = xw / S.n;
-  const show = ev => {
-    const r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width * W;
-    const i = Math.max(0, Math.min(S.n - 1, Math.floor((x - L) / slot))), pt = S.pts[i], cx = L + (i + .5) * slot;
-    cross.setAttribute("x", L + i * slot); hov.setAttribute("visibility", "visible");
-    const fut = i > S.ti;
-    tip.innerHTML = `<b>${br(pt.k)}${i === S.ti ? " · hoje" : ""}${i === S.n - 1 ? " · prova" : ""}${fut ? " · previsão" : ""}</b>
-      <span><i class="sw m"></i>Meta do dia: ${pt.meta}</span>
-      <span>${fut ? "Feitas previstas" : "Feitas"}: <b>${fut ? pt.pq : pt.q}</b></span>
-      <span><i class="sq a"></i>${fut ? "Certas previstas" : "Certas"}: ${fut ? pt.pa : pt.a}</span>
-      <span><i class="sq e"></i>${fut ? "Erros previstos" : "Erros"}: ${fut ? pt.pe : pt.e}</span>`;
-    tip.hidden = false;
-    const bx = box.getBoundingClientRect(), px = cx / W * r.width + (r.left - bx.left);
-    tip.style.left = Math.max(0, Math.min(bx.width - tip.offsetWidth, px - tip.offsetWidth / 2)) + "px";
-  };
-  const hide = () => { hov.setAttribute("visibility", "hidden"); tip.hidden = true; };
-  const hit = svg.querySelector(".pg-hit");
-  hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show); hit.addEventListener("pointerleave", hide);
-}
-function progressSummary(p) {
-  const S = progressSeries(p), PJ = projection(p);
-  if (!p.log.length) return `Ainda não respondeu questões. A meta é ${p.goal} por dia até a prova.`;
-  const pace = `Média dos últimos dias: ${S.avgQ} questões por dia (${S.avgA} certas e ${S.avgE} erros), para uma meta de ${p.goal}.`;
-  const rest = S.left > 0 ? ` Faltam ${S.left} dias até a prova: nesse ritmo serão ${S.avgQ * S.left} questões, e a meta pede ${p.goal * S.left}.` : "";
-  const score = PJ.total === null ? "" : ` Projeção na prova: ${PJ.total} acertos de 50.`;
-  return pace + rest + score;
-}
-
-function todayByArea(p) {
-  /* As 40 questões da meta de hoje divididas por área: pela trilha de hoje, ou pela proporção da prova se ainda não houver trilha. */
-  const plan = {}; AREAS.forEach(a => plan[a] = 0);
-  const ids = p.trail && p.trail.date === dayKey() ? p.trail.ids.slice(0, p.goal) : [];
-  ids.forEach(id => { const q = QMAP[id]; if (q && plan[q.area] !== undefined) plan[q.area]++; });
-  if (!ids.length) { const seats = projection(p).per.map(x => x.inExam * p.goal / 50), fl = seats.map(Math.floor);
-    seats.map((v, i) => [v - fl[i], i]).sort((x, y) => y[0] - x[0]).slice(0, p.goal - fl.reduce((s, v) => s + v, 0)).forEach(([, i]) => fl[i]++);
-    AREAS.forEach((a, i) => plan[a] = fl[i]); }
-  const tk = dayKey(), ok = {}, bad = {};
-  p.log.forEach(([ts, a, o]) => { if (kOf(new Date(ts)) !== tk) return; (o ? ok : bad)[a] = ((o ? ok : bad)[a] || 0) + 1; });
-  return AREAS.map(a => ({ a, plan: plan[a], ok: ok[a] || 0, bad: bad[a] || 0 }));
+function parentView(p) {
+  /* Painel para os pais: hoje, últimos 7 dias, acertos, caminho até a prova e áreas. Números grandes e frases curtas. */
+  const tk = dayKey(), PJ = projection(p), S = progressSeries(p);
+  const day = k => { let q = (p.days[k] || { q: 0 }).q, ok = 0, n = 0; p.log.forEach(([ts, , o]) => { if (kOf(new Date(ts)) === k) { n++; if (o) ok++; } }); q = Math.max(q, n); return { q, ok: Math.min(ok, q), err: Math.max(0, n - ok) }; };
+  const T = day(tk), left = Math.max(0, p.goal - T.q);
+  const pill = T.q >= p.goal ? `<span class="pv-pill good">✓ Meta cumprida</span>` : T.q > 0 ? `<span class="pv-pill mid">Em andamento</span>` : `<span class="pv-pill none">Ainda não começou</span>`;
+  const hoje = `<div class="pv-card"><div class="pv-top"><span class="eyebrow">Hoje</span>${pill}</div>
+    <p class="pv-big">${T.q} <small>de ${p.goal} questões</small></p>
+    <div class="pv-bar"><i class="ok" style="width:${Math.min(100, T.ok / p.goal * 100)}%"></i><i class="err" style="width:${Math.min(100 - Math.min(100, T.ok / p.goal * 100), T.err / p.goal * 100)}%"></i></div>
+    <p class="pv-txt"><b class="t-ok">${T.ok} ${T.ok === 1 ? "certa" : "certas"}</b> e <b class="t-err">${T.err} ${T.err === 1 ? "erro" : "erros"}</b>.${left ? ` Faltam ${left} para a meta.` : ""}</p></div>`;
+  const wd = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"]; let met = 0, tiles = "";
+  for (let i = 6; i >= 0; i--) { const d = new Date(dOf(tk).getTime() - i * DAY_MS), k = kOf(d), x = day(k), st = x.q >= p.goal ? "good" : x.q > 0 ? "mid" : "none"; if (st === "good") met++;
+    tiles += `<div class="pv-day ${st}${i === 0 ? " today" : ""}" title="${br(k)}: ${x.q} questões, ${x.ok} certas"><span>${i === 0 ? "hoje" : wd[d.getDay()]}</span><b>${x.q || "–"}</b><small>${st === "good" ? "✓" : st === "mid" ? "parcial" : "não fez"}</small></div>`; }
+  const semana = `<div class="pv-card"><div class="pv-top"><span class="eyebrow">Últimos 7 dias</span></div><div class="pv-days">${tiles}</div>
+    <p class="pv-txt">Cumpriu a meta de ${p.goal} em <b>${met} de 7 dias</b>.</p></div>`;
+  const now = Date.now(), wk = p.log.filter(x => now - x[0] < 7 * DAY_MS), prev = p.log.filter(x => now - x[0] >= 7 * DAY_MS && now - x[0] < 14 * DAY_MS);
+  const accAll = p.log.length ? p.log.filter(x => x[2]).length / p.log.length : null;
+  const accWk = wk.length ? wk.filter(x => x[2]).length / wk.length : null, accPrev = prev.length >= 10 ? prev.filter(x => x[2]).length / prev.length : null;
+  let trend = ""; if (accWk !== null && accPrev !== null && wk.length >= 10) { const d = Math.round((accWk - accPrev) * 100); trend = d >= 3 ? `<span class="pv-pill good">▲ melhorou ${d} pontos na semana</span>` : d <= -3 ? `<span class="pv-pill bad">▼ caiu ${-d} pontos na semana</span>` : `<span class="pv-pill none">estável na semana</span>`; }
+  const pct = accAll === null ? null : Math.round(accAll * 100);
+  const acertos = `<div class="pv-card"><div class="pv-top"><span class="eyebrow">Acertos</span>${trend}</div>
+    <p class="pv-big">${pct === null ? "–" : pct + "%"} <small>${pct === null ? "ainda sem respostas" : "das questões respondidas"}</small></p>
+    <p class="pv-txt">${p.log.length < 10 ? "Ainda são poucas questões para medir bem. Depois de umas 40, o número fica confiável." : `De cada 10 questões, acerta <b>${Math.round(accAll * 10)}</b>. ${PJ.total === null ? "" : `Se a prova fosse hoje, acertaria cerca de <b>${PJ.total} das 50</b>.`}`}</p></div>`;
+  const planned = p.goal * S.n, done = p.log.length, pDone = Math.min(100, done / planned * 100), pShould = Math.min(100, p.goal * (S.ti + 1) / planned * 100);
+  const daysLeft = S.n - 1 - S.ti, behind = p.goal * (S.ti + 1) - done;
+  const prova = `<div class="pv-card"><div class="pv-top"><span class="eyebrow">Até a prova</span><span class="pv-pill none">${daysLeft} ${daysLeft === 1 ? "dia" : "dias"} · ${br(p.exam || "2026-12-06")}</span></div>
+    <p class="pv-big">${done} <small>de ${planned} questões do plano</small></p>
+    <div class="pv-bar plan"><i class="done" style="width:${pDone}%"></i><b class="mark" style="left:${pShould}%" title="Onde deveria estar hoje"></b></div>
+    <p class="pv-txt">${done === 0 ? `O plano é ${p.goal} questões por dia até a prova.` : behind > 0 ? `Está <b class="t-err">${behind} questões atrás</b> do plano. O risco preto mostra onde deveria estar hoje.` : `<b class="t-ok">Está em dia</b> com o plano.`}${done && S.avgQ ? ` Média recente: ${S.avgQ} por dia.` : ""}</p></div>`;
+  const LV = { good: ["good", "bom"], mid: ["mid", "atenção"], bad: ["bad", "precisa reforçar"], none: ["none", "poucos dados"] };
+  const areas = `<div class="pv-card wide"><div class="pv-top"><span class="eyebrow">Acertos por matéria</span></div>${PJ.per.map(x => { const [c, w] = LV[x.lvl]; const v = x.acc === null ? 0 : Math.round(x.acc * 100);
+    return `<div class="pv-area" data-area="${x.a}"><span class="nm">${x.a}</span><div class="pv-bar"><i class="${c}" style="width:${x.lvl === "none" ? 0 : v}%"></i></div><span class="v">${x.lvl === "none" ? "–" : v + "%"}</span><span class="pv-pill ${c}">${w}</span><small>${x.n} ${x.n === 1 ? "questão feita" : "questões feitas"}</small></div>`; }).join("")}</div>`;
+  return `<div class="pv">${hoje}${semana}${acertos}${prova}${areas}</div>`;
 }
 function renderKids() {
   if (!DB.profiles.length) { $("#kids").innerHTML = `<p class="tip">Nenhum aluno cadastrado neste aparelho ainda.</p>`; return; }
@@ -1151,17 +1138,12 @@ function renderKids() {
     const acc = accuracy(p.log), PJ = projection(p); const today = (p.days[dayKey()] || { q: 0 }).q;
     const last = Object.keys(p.days).sort().pop();
     return `<div class="kid" data-id="${p.id}"><div class="kid-head"><h3><i class="avatar">${esc(p.name[0]?.toUpperCase() || "?")}</i>${esc(p.name)}</h3><span class="tip">${last ? "último estudo em " + last.split("-").reverse().join("/") : "ainda não estudou"}</span></div>
-      <div class="kid-stats"><div><b>${today}/${p.goal}</b>meta de hoje</div><div><b>${streakOf(p)}</b>dias seguidos</div><div><b>${Math.min(8, weekOf(p) + 1)}/8</b>semana</div><div><b>${p.log.length}</b>respondidas</div><div><b>${PJ.total === null ? "–" : PJ.total + "/50"}</b>projeção</div></div>
-      <div class="pg-wrap"><div class="row" style="justify-content:space-between;align-items:baseline"><b>Questões por dia até a prova</b><span class="pg-legend"><span><i class="sw m"></i>Meta do dia</span><span><i class="sq a"></i>Certas</span><span><i class="sq e"></i>Erros</span><span><i class="sq p"></i>Previsão (média)</span></span></div>
-      ${progressChart(p, Math.round(Math.min(600, Math.max(300, ($("#kids").clientWidth || 600) - 34))))}<p class="tip">${progressSummary(p)}</p></div>
-      <p class="tip" style="margin-bottom:-4px">Hoje, nas ${p.goal} questões da meta:</p>
-      <div class="pg-areas">${todayByArea(p).map(x => `<span data-area="${x.a}"><b>${x.a}</b> ${x.plan} ${x.plan === 1 ? "questão" : "questões"} · <span class="ok-t">${x.ok} ${x.ok === 1 ? "certa" : "certas"}</span> · <span class="bad-t">${x.bad} ${x.bad === 1 ? "erro" : "erros"}</span></span>`).join("")}</div>
+      ${parentView(p)}
       <div class="row"><button type="button" class="btn small copy">Copiar relatório</button><button type="button" class="btn ghost small del">Remover aluno</button></div><p class="tip msg"></p></div>`;
   }).join("");
   $$("#kids .kid").forEach(k => {
     const p = DB.profiles.find(x => x.id === k.dataset.id);
     const msg = k.querySelector(".msg");
-    wireProgressChart(k.querySelector(".pg"), p);
     k.querySelector(".copy").addEventListener("click", () => {
       const txt = report(p);
       const fallback = () => { msg.textContent = txt; };
