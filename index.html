@@ -383,10 +383,10 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
 
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="#trilha"><span id="brandSabi" style="width:30px;display:block"></span>Rumo à Etec</a>
+    <a class="brand" href="#inicio"><span id="brandSabi" style="width:30px;display:block"></span>Rumo à Etec</a>
     <nav class="links" aria-label="Seções">
-      <a href="#trilha">Trilha</a>
       <a href="#inicio">Painel</a>
+      <a href="#trilha">Trilha</a>
       <a href="#plano">Plano</a>
       <a href="#familia">Família</a>
     </nav>
@@ -401,20 +401,7 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
 
 <main class="wrap">
 
-  <section class="block" id="trilha" style="padding-top:8px">
-    <div class="section-head">
-      <p class="eyebrow">Plano de estudo diário</p>
-      <h2>Trilha do dia</h2>
-      <p>Responda e veja na hora se acertou. Se errar, o Sabi explica.</p>
-    </div>
-    <div class="trail-top">
-      <div class="trail-opts" id="trailAreas" role="group" aria-label="Área da trilha" hidden></div>
-      <div class="path" id="path"></div>
-    </div>
-    <div id="player"></div>
-  </section>
-
-  <section class="block" id="inicio">
+  <section class="block" id="inicio" style="padding-top:0;padding-bottom:0">
     <div class="hello">
       <div id="helloSabi"></div>
       <div>
@@ -433,6 +420,19 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
       <div><h3 id="ctaTitle">Trilha de hoje</h3><p>Questões misturadas de todas as áreas, uma de cada vez.</p></div>
       <a class="btn sun" href="#trilha" id="ctaBtn">Começar a trilha</a>
     </div>
+  </section>
+
+  <section class="block" id="trilha" style="padding-top:8px">
+    <div class="section-head">
+      <p class="eyebrow">Plano de estudo diário</p>
+      <h2>Trilha do dia</h2>
+      <p>Responda e veja na hora se acertou. Se errar, o Sabi explica.</p>
+    </div>
+    <div class="trail-top">
+      <div class="trail-opts" id="trailAreas" role="group" aria-label="Área da trilha" hidden></div>
+      <div class="path" id="path"></div>
+    </div>
+    <div id="player"></div>
   </section>
 
   <section class="block" id="evolucao" style="display:grid;gap:16px">
