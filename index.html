@@ -603,8 +603,10 @@ const CONTENT = {
 /* ===== voz ===== */
 /* Os aparelhos trazem vozes diferentes; escolhemos pelo nome a voz feminina ou masculina em português.
    Se o aparelho não tiver a voz pedida, mudamos o tom (pitch) da voz disponível. */
-const V_FEM = ["luciana", "francisca", "google português", "maria", "thalita", "fernanda", "vitória", "vitoria", "leila", "yara", "raquel", "manuela", "brenda", "giovanna", "elza", "leticia", "letícia", "joana", "catarina", "flo", "sandy", "shelley"];
-const V_MAS = ["felipe", "daniel", "antonio", "antônio", "donato", "fabio", "fábio", "humberto", "julio", "júlio", "nicolau", "valerio", "valério", "duarte", "joaquim", "reed", "eddy", "rocko"];
+const V_FEM = ["francisca", "thalita", "luciana", "google português", "maria", "fernanda", "vitória", "vitoria", "leila", "yara", "raquel", "manuela", "brenda", "giovanna", "elza", "leticia", "letícia", "flo", "sandy", "shelley"];
+const V_MAS = ["antonio", "antônio", "felipe", "daniel", "donato", "fabio", "fábio", "humberto", "julio", "júlio", "nicolau", "valerio", "valério", "reed", "eddy", "rocko"];
+const V_GOOD = /natural|online|neural|enhanced|premium|aprimorad|melhorad|google/i, V_ODD = /rocko|grandpa|grandma|eddy|flo\b|sandy|shelley|reed|bells|bubbles|whisper|zarvox|bad news|good news|jester|organ|trinoids|cellos|bahh|albert|boing|superstar|wobble/i;
+const isBR = v => /^pt[-_]br$/i.test(v.lang);
 let ptVoices = [], ptVoice = null, ptMatch = true;
 if (!DB.vgender) DB.vgender = "f";
 if (!DB.vrate) DB.vrate = 0.95;
@@ -619,12 +621,12 @@ function voiceKind(v) {
 function voiceRank(v, g) {
   const n = v.name.toLowerCase(), list = g === "m" ? V_MAS : V_FEM;
   const i = list.findIndex(k => n.includes(k));
-  return (/pt[-_]br/i.test(v.lang) ? 0 : 100) + (i < 0 ? 50 : i);
+  return (V_GOOD.test(v.name) ? 0 : 40) + (V_ODD.test(v.name) ? 200 : 0) + (i < 0 ? 30 : i);
 }
 function pickVoice() {
   try {
     const vs = speechSynthesis.getVoices();
-    ptVoices = vs.filter(v => /^pt/i.test(v.lang)).sort((a, b) => (/pt[-_]br/i.test(b.lang) - /pt[-_]br/i.test(a.lang)) || a.name.localeCompare(b.name));
+    ptVoices = vs.filter(isBR).sort((a, b) => (V_ODD.test(a.name) - V_ODD.test(b.name)) || a.name.localeCompare(b.name));
     const chosen = DB.vname && ptVoices.find(v => v.name === DB.vname);
     if (chosen) { ptVoice = chosen; ptMatch = voiceKind(chosen) !== "" ? voiceKind(chosen) === DB.vgender : true; }
     else {
@@ -637,14 +639,30 @@ function pickVoice() {
 }
 try { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {}
 function voicePitch() {
-  if (ptMatch) return DB.vgender === "m" ? 0.95 : 1.05;
+  if (ptMatch) return 1;
   const k = ptVoice ? voiceKind(ptVoice) : "";
-  if (DB.vgender === "m") return k === "m" ? 0.95 : 0.6;
-  return k === "m" ? 1.4 : 1.1;
+  if (DB.vgender === "m") return k === "m" ? 1 : 0.78;
+  return k === "m" ? 1.25 : 1;
 }
 function speak(text, force) {
   if (!DB.voice && !force) return;
-  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "pt-BR"; if (ptVoice) { u.voice = ptVoice; u.lang = ptVoice.lang; } u.rate = DB.vrate; u.pitch = voicePitch(); speechSynthesis.speak(u); } catch (e) {}
+  try {
+    speechSynthesis.cancel();
+    /* Frases curtas, uma de cada vez: a entonação fica mais natural e o Chrome não corta falas longas. */
+    sayable(text).forEach(part => { const u = new SpeechSynthesisUtterance(part); u.lang = "pt-BR"; if (ptVoice) u.voice = ptVoice; u.rate = DB.vrate; u.pitch = voicePitch(); speechSynthesis.speak(u); });
+  } catch (e) {}
+}
+function sayable(text) {
+  const t = String(text)
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s*=\s*/g, " é igual a ").replace(/\s+\+\s+/g, " mais ").replace(/(\d)\s*%/g, "$1 por cento")
+    .replace(/(\d)\s*[x×]\s*(\d)/g, "$1 vezes $2").replace(/\s+[-–—]\s+/g, ", ").replace(/[·•|]/g, ", ").replace(/\s+\/\s+/g, ", ")
+    .replace(/\bNº\s*/gi, "número ").replace(/\s+/g, " ").trim();
+  const parts = t.match(/[^.!?;:]+[.!?;:]*/g) || [t];
+  const out = []; let cur = "";
+  parts.forEach(p => { p = p.trim(); if (!p) return; if ((cur + " " + p).length > 180 && cur) { out.push(cur); cur = p; } else cur = cur ? cur + " " + p : p; });
+  if (cur) out.push(cur);
+  return out;
 }
 function hush() { try { speechSynthesis.cancel(); } catch (e) {} }
 function renderVoice() { $("#voiceBtn").setAttribute("aria-pressed", DB.voice); $("#voiceBtn .wave").style.display = DB.voice ? "" : "none"; }
@@ -657,7 +675,7 @@ function renderVoicePop() {
   sel.value = DB.vname && ptVoices.some(v => v.name === DB.vname) ? DB.vname : "";
   let info;
   if (!("speechSynthesis" in window)) info = "Este navegador não tem leitura em voz alta.";
-  else if (!ptVoices.length) info = "Este aparelho não tem voz em português instalada. Ele vai usar a voz padrão.";
+  else if (!ptVoices.length) info = "Este aparelho não tem voz em português do Brasil instalada. Instale nas configurações do celular (Acessibilidade ou Idioma, em Leitura em voz alta ou Conversão de texto em voz) e recarregue a página.";
   else if (!ptMatch && !DB.vname) info = `Este aparelho não tem voz ${DB.vgender === "m" ? "masculina" : "feminina"} em português, então o Sabi muda o tom da voz ${ptVoice ? esc(ptVoice.name) : ""} para imitar.`;
   else info = `Usando a voz ${ptVoice ? esc(ptVoice.name) : "padrão"}.`;
   $("#vInfo").innerHTML = info;
