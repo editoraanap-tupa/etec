@@ -1,0 +1,928 @@
+<meta charset="utf-8">
+<title>Rumo à Etec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Literata:opsz,wght@7..72,400;7..72,600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: aplicativo de estudo em uma coluna — painel de evolução no topo, trilha de etapas em linha reta, uma questão por vez com o mascote Sabi corrigindo na hora.
+   Cada área do conhecimento tem a sua cor, usada nos nós da trilha, nas etiquetas e nos gráficos. */
+:root {
+  --bg: #f3f6ff;
+  --sheet: #ffffff;
+  --ink: #17203b;
+  --ink-soft: #4f5a78;
+  --line: #d8def0;
+  --brand: #3b3fd8;
+  --brand-wash: #e7e8ff;
+  --sun: #ffb020;
+  --sun-wash: #fff3d6;
+  --ok: #16a34a;
+  --ok-wash: #dcfce7;
+  --bad: #dc2626;
+  --bad-wash: #fee2e2;
+  --por: #8b3ff2; --por-wash: #f1e8ff;
+  --mat: #2563eb; --mat-wash: #e3ecff;
+  --cie: #0d9b6c; --cie-wash: #dcf7ec;
+  --hum: #ea6a0c; --hum-wash: #ffeedf;
+  --ill-ink: #17203b; --ill-a: #3b3fd8; --ill-b: #ffb020; --ill-c: #eef1ff;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Literata", Georgia, "Times New Roman", serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1222; --sheet: #171d34; --ink: #e8ebf7; --ink-soft: #a9b1cc; --line: #2b3456;
+    --brand: #8f93ff; --brand-wash: #23284f; --sun: #ffc24d; --sun-wash: #3a2f12;
+    --ok: #4ade80; --ok-wash: #12341f; --bad: #f87171; --bad-wash: #3d1a1d;
+    --por: #b388ff; --por-wash: #2c2047; --mat: #7aa2ff; --mat-wash: #1b2a52;
+    --cie: #3ed6a0; --cie-wash: #12352a; --hum: #ff9c57; --hum-wash: #3b2414;
+    --ill-ink: #e8ebf7; --ill-a: #8f93ff; --ill-b: #ffc24d; --ill-c: #23284f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1222; --sheet: #171d34; --ink: #e8ebf7; --ink-soft: #a9b1cc; --line: #2b3456;
+  --brand: #8f93ff; --brand-wash: #23284f; --sun: #ffc24d; --sun-wash: #3a2f12;
+  --ok: #4ade80; --ok-wash: #12341f; --bad: #f87171; --bad-wash: #3d1a1d;
+  --por: #b388ff; --por-wash: #2c2047; --mat: #7aa2ff; --mat-wash: #1b2a52;
+  --cie: #3ed6a0; --cie-wash: #12352a; --hum: #ff9c57; --hum-wash: #3b2414;
+  --ill-ink: #e8ebf7; --ill-a: #8f93ff; --ill-b: #ffc24d; --ill-c: #23284f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.6; padding-inline: 16px; padding-block: 0 72px; }
+.wrap { max-width: 940px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--f-display); line-height: 1.15; text-wrap: balance; margin: 0; }
+h2 { font-size: clamp(1.6rem, 4.5vw, 2.3rem); font-weight: 800; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; }
+a { color: var(--brand); }
+button { font: inherit; }
+.eyebrow { font-family: var(--f-mono); font-size: .76rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.tip { font-size: .92rem; color: var(--ink-soft); }
+:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
+
+/* cores por área */
+[data-area="Português"] { --area: var(--por); --area-wash: var(--por-wash); }
+[data-area="Matemática"] { --area: var(--mat); --area-wash: var(--mat-wash); }
+[data-area="Ciências"] { --area: var(--cie); --area-wash: var(--cie-wash); }
+[data-area="Humanas"] { --area: var(--hum); --area-wash: var(--hum-wash); }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--area-wash, var(--brand-wash)); color: var(--area, var(--brand)); white-space: nowrap; }
+
+/* botões */
+.btn { font-family: var(--f-display); font-weight: 700; font-size: 1rem; border: 2px solid var(--brand); background: var(--brand); color: var(--sheet); padding: 11px 20px; border-radius: 999px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.btn.ghost { background: transparent; color: var(--brand); }
+.btn.sun { background: var(--sun); border-color: var(--sun); color: #2a1d00; }
+.btn.small { padding: 6px 14px; font-size: .9rem; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* topo */
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; margin-inline: -16px; padding: 8px 16px; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+header.top .wrap { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.brand { font-family: var(--f-display); font-weight: 800; font-size: 1.1rem; color: var(--brand); text-decoration: none; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+nav.links { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+nav.links a { flex: none; font-family: var(--f-display); font-weight: 700; font-size: .9rem; text-decoration: none; color: var(--ink-soft); padding: 6px 10px; border-radius: 999px; }
+nav.links a:hover { color: var(--ink); background: var(--brand-wash); }
+.who { display: flex; gap: 6px; align-items: center; flex: none; }
+.who-btn { display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--sheet); color: var(--ink); border-radius: 999px; padding: 4px 10px 4px 4px; cursor: pointer; font-family: var(--f-display); font-weight: 700; font-size: .9rem; max-width: 150px; }
+.who-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.avatar { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--sun); color: #2a1d00; font-size: .8rem; font-style: normal; flex: none; }
+.icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--sheet); color: var(--ink); cursor: pointer; display: grid; place-items: center; flex: none; }
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn[aria-pressed="false"] { color: var(--ink-soft); }
+
+section.block { padding-block: 44px 8px; scroll-margin-top: 64px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.section-head { display: grid; gap: 8px; }
+.section-head p { color: var(--ink-soft); max-width: 42em; }
+.card { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+
+/* mascote */
+.sabi { width: 100%; height: auto; display: block; }
+.sabi .pupil { transition: transform .3s; }
+.sabi.think .pupil { transform: translate(2px, -2px); }
+.sabi:not(.think) .brow { display: none; }
+
+/* painel / início */
+.hello { display: grid; grid-template-columns: 110px 1fr; gap: 18px; align-items: center; padding-block: 28px 0; }
+.hello h1 { font-size: clamp(1.7rem, 5.5vw, 2.6rem); font-weight: 800; letter-spacing: -.01em; }
+.hello h1 em { font-style: normal; color: var(--brand); }
+.hello p { color: var(--ink-soft); margin-top: 6px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stat { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 4px; align-content: start; border-top: 5px solid var(--c, var(--brand)); }
+.stat b { font-family: var(--f-display); font-size: 1.75rem; font-weight: 800; color: var(--c, var(--brand)); line-height: 1.05; font-variant-numeric: tabular-nums; }
+.stat .sub { font-size: .86rem; color: var(--ink-soft); }
+.bar { height: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--c, var(--brand)); border-radius: 999px; }
+.start-cta { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; background: linear-gradient(120deg, var(--brand) 0%, color-mix(in srgb, var(--brand) 55%, var(--por)) 100%); color: #fff; border-radius: var(--radius); padding: 18px 20px; }
+.start-cta h3 { font-size: 1.25rem; }
+.start-cta p { opacity: .9; font-size: .95rem; }
+
+/* jornada de 8 semanas */
+.journey { overflow-x: auto; padding-bottom: 6px; }
+.journey ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(8, minmax(104px, 1fr)); min-width: 840px; }
+.journey li { display: grid; gap: 6px; justify-items: center; align-content: start; text-align: center; padding: 0 4px; position: relative; }
+.journey li::before { content: ""; position: absolute; top: 21px; left: -50%; width: 100%; height: 4px; background: var(--line); z-index: 0; }
+.journey li:first-child::before { display: none; }
+.journey li.done::before, .journey li.now::before { background: var(--ok); }
+.wk { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-family: var(--f-display); font-weight: 800; background: var(--sheet); border: 3px solid var(--line); color: var(--ink-soft); position: relative; z-index: 1; }
+.journey li.done .wk { background: var(--ok); border-color: var(--ok); color: var(--sheet); }
+.journey li.now .wk { border-color: var(--sun); background: var(--sun-wash); color: var(--ink); box-shadow: 0 0 0 5px color-mix(in srgb, var(--sun) 30%, transparent); }
+.journey .wt { font-family: var(--f-display); font-weight: 700; font-size: .85rem; }
+.journey .ws { font-size: .76rem; color: var(--ink-soft); line-height: 1.35; }
+.journey .wp { font-family: var(--f-mono); font-size: .72rem; color: var(--ink-soft); }
+
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.two > * { min-width: 0; }
+.chart { position: relative; height: 140px; display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; align-items: end; border-bottom: 1px solid var(--line); margin-top: 18px; }
+.chart .col { background: var(--brand-wash); border: 1px solid var(--brand); border-bottom: 0; border-radius: 5px 5px 0 0; min-height: 2px; position: relative; }
+.chart .col.ok { background: var(--ok-wash); border-color: var(--ok); }
+.chart .col span { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-family: var(--f-mono); font-size: .66rem; color: var(--ink-soft); }
+.chart .goal { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--sun); pointer-events: none; }
+.days { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; font-family: var(--f-mono); font-size: .64rem; color: var(--ink-soft); text-align: center; }
+.areas { display: grid; gap: 10px; }
+.area-row { display: grid; grid-template-columns: 9.5em 1fr 3.2em; gap: 10px; align-items: center; font-size: .92rem; }
+.area-row .bar > i { background: var(--area); }
+.proj { display: grid; gap: 12px; }
+.proj-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 4px 10px; align-items: center; }
+.proj-row .nm { font-weight: 600; font-size: .95rem; }
+.proj-row .nm small { font-weight: 400; color: var(--ink-soft); }
+.proj-row .hits { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: .95rem; text-align: right; }
+.proj-row .bar { grid-column: 1 / -1; }
+.proj-row .bar > i { background: var(--area); }
+.lvl { font-family: var(--f-mono); font-size: .68rem; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; margin-left: 6px; white-space: nowrap; }
+.lvl.bad { background: var(--bad-wash); color: var(--bad); } .lvl.mid { background: var(--sun-wash); color: var(--ink); } .lvl.good { background: var(--ok-wash); color: var(--ok); } .lvl.none { background: var(--line); color: var(--ink-soft); }
+.attn { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.attn li { display: grid; grid-template-columns: 10px minmax(0,1fr) auto; gap: 8px; align-items: center; font-size: .92rem; }
+.attn li::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--area); }
+.attn li span:last-child { font-family: var(--f-mono); font-size: .82rem; color: var(--bad); white-space: nowrap; }
+.area-row .pct { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* trilha */
+.trail-top { display: grid; gap: 12px; }
+.trail-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { border: 2px solid var(--line); background: var(--sheet); color: var(--ink); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-family: var(--f-display); font-weight: 700; font-size: .9rem; }
+.pill[aria-pressed="true"] { border-color: var(--area, var(--brand)); background: var(--area-wash, var(--brand-wash)); color: var(--area, var(--brand)); }
+.path { overflow-x: auto; padding: 10px 6px 8px; scrollbar-width: thin; }
+.path ol { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; min-width: max-content; }
+.path li { display: flex; align-items: center; }
+.path li + li::before { content: ""; width: 22px; height: 4px; background: var(--line); display: block; }
+.path li.past + li::before { background: var(--ok); }
+.node { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--area); background: var(--sheet); color: var(--area); font-family: var(--f-mono); font-weight: 600; font-size: .82rem; display: grid; place-items: center; flex: none; }
+.node.cur { background: var(--area); color: var(--sheet); transform: scale(1.15); box-shadow: 0 0 0 5px var(--area-wash); }
+.node.r { background: var(--ok); border-color: var(--ok); color: var(--sheet); }
+.node.w { background: var(--bad); border-color: var(--bad); color: var(--sheet); }
+.node.goal { border-style: dashed; border-color: var(--sun); color: var(--sun); }
+.node.goal svg { width: 18px; height: 18px; }
+@media (prefers-reduced-motion: no-preference) {
+  .node.cur { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 9px var(--area-wash); } }
+  html { scroll-behavior: smooth; }
+}
+
+.player { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; border-top: 6px solid var(--area, var(--brand)); }
+.player .qhead { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
+.player .num { font-family: var(--f-mono); font-weight: 600; color: var(--area, var(--brand)); }
+.ctx { background: var(--bg); border-left: 4px solid var(--area, var(--brand)); padding: 12px 14px; border-radius: 0 10px 10px 0; font-size: .97rem; }
+.stem { font-size: 1.05rem; }
+.ctx p, .stem p { margin: 0 0 .7em; } .ctx p:last-child, .stem p:last-child { margin-bottom: 0; }
+.ctx .src { font-size: .8rem; color: var(--ink-soft); word-break: break-word; }
+.qtable { overflow-x: auto; } .qtable table { border-collapse: collapse; font-size: .92rem; min-width: 100%; }
+.qtable th, .qtable td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+.qtable th { background: var(--area-wash, var(--brand-wash)); }
+.qfig { margin: 0; border-radius: 10px; background: #fff; border: 1px solid var(--line); overflow-x: auto; }
+.qfig img { display: block; width: 100%; max-width: 640px; height: auto; margin: 0 auto; cursor: zoom-in; }
+.qfig.zoom img { width: 200%; max-width: none; cursor: zoom-out; }
+details.orig { font-size: .85rem; color: var(--ink-soft); } details.orig summary { cursor: pointer; }
+details.orig .qimg { margin-top: 8px; }
+.opts { display: grid; gap: 8px; }
+.opt { display: grid; grid-template-columns: 32px 1fr; gap: 10px; align-items: center; text-align: left; color: var(--ink); background: transparent; border: 2px solid var(--line); border-radius: 12px; padding: 9px 12px; cursor: pointer; font-size: 1rem; }
+.opt:hover:not(:disabled) { border-color: var(--area, var(--brand)); background: var(--area-wash, var(--brand-wash)); }
+.bub { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--ink-soft); display: grid; place-items: center; font-family: var(--f-mono); font-size: .85rem; font-weight: 600; color: var(--ink-soft); }
+.opt.right { border-color: var(--ok); background: var(--ok-wash); }
+.opt.right .bub { background: var(--ok); border-color: var(--ok); color: var(--sheet); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-wash); }
+.opt.wrong .bub { background: var(--bad); border-color: var(--bad); color: var(--sheet); }
+.opt:disabled { cursor: default; }
+.lettergrid { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.lettergrid .opt { grid-template-columns: 1fr; width: 56px; height: 56px; padding: 0; justify-items: center; border-radius: 50%; }
+.lettergrid .opt .bub { border: 0; width: auto; height: auto; font-size: 1.1rem; color: inherit; background: none; }
+.lettergrid .opt.right, .lettergrid .opt.wrong { color: var(--sheet); }
+.lettergrid .opt.right { background: var(--ok); }
+.lettergrid .opt.wrong { background: var(--bad); }
+.lettergrid .opt.right .bub, .lettergrid .opt.wrong .bub { background: none; }
+.qimg { overflow-x: auto; border-radius: 10px; background: #fff; border: 1px solid var(--line); }
+.qimg img { display: block; width: 100%; height: auto; cursor: zoom-in; }
+.qimg.zoom img { width: 200%; max-width: none; cursor: zoom-out; }
+@media (min-width: 761px) { .qimg.zoom img { width: 145%; } }
+
+.feedback { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 14px; align-items: start; }
+.bubble { position: relative; background: var(--sun-wash); border: 2px solid var(--sun); border-radius: 16px; padding: 14px 16px; display: grid; gap: 8px; font-size: .98rem; }
+.bubble { grid-template-columns: minmax(0, 1fr); min-width: 0; } .bubble > * { min-width: 0; overflow-wrap: break-word; }
+.bubble::before { content: ""; position: absolute; left: -11px; top: 26px; border: 10px solid transparent; border-right-color: var(--sun); border-left: 0; }
+.feedback.ok .bubble { background: var(--ok-wash); border-color: var(--ok); }
+.feedback.ok .bubble::before { border-right-color: var(--ok); }
+.bubble .say { font-family: var(--f-display); font-weight: 800; font-size: 1.15rem; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.feedback.ok .say { color: var(--ok); }
+.feedback.no .say { color: var(--bad); }
+.bubble .lbl { font-family: var(--f-display); font-weight: 700; }
+.bubble .dica { background: var(--sheet); border-radius: 10px; padding: 8px 12px; font-size: .92rem; border: 1px dashed var(--sun); }
+.ill { background: var(--ill-c); border-radius: 12px; padding: 8px; max-width: 360px; }
+.ill svg { display: block; width: 100%; height: auto; }
+.player-foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
+.finish { text-align: center; justify-items: center; }
+.finish .big { font-family: var(--f-display); font-weight: 800; font-size: clamp(2.4rem, 9vw, 3.6rem); color: var(--brand); line-height: 1; }
+.finish .owl { width: 120px; }
+
+/* provas */
+.editions { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+.edition { text-align: left; cursor: pointer; background: var(--sheet); color: var(--ink); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 2px; }
+.edition b { font-family: var(--f-display); }
+.edition span { font-size: .8rem; color: var(--ink-soft); }
+.edition:hover { border-color: var(--brand); }
+.edition[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-wash); }
+
+/* áreas */
+.area-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.area-tab { text-align: left; cursor: pointer; background: var(--sheet); color: var(--ink); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 2px; border-bottom: 5px solid var(--area); }
+.area-tab b { font-family: var(--f-display); color: var(--area); font-size: 1.05rem; }
+.area-tab span { font-size: .82rem; color: var(--ink-soft); }
+.area-tab[aria-selected="true"] { background: var(--area-wash); border-color: var(--area); }
+.area-panel { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; border-left: 6px solid var(--area); }
+.area-panel > * { min-width: 0; display: grid; gap: 10px; align-content: start; }
+.area-panel ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+
+/* plano */
+.plan { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--sheet); }
+.plan table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: .93rem; }
+.plan th, .plan td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.plan th { font-family: var(--f-display); font-size: .85rem; }
+.plan th[data-area] { color: var(--area); }
+.plan td:first-child { font-family: var(--f-mono); font-weight: 600; white-space: nowrap; }
+.plan tr.now td { background: var(--sun-wash); }
+.plan tr:last-child td { border-bottom: 0; }
+
+.facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.fact { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 2px; }
+.fact b { font-family: var(--f-display); font-size: 1.8rem; font-weight: 800; color: var(--brand); line-height: 1.05; }
+.fact span { font-size: .9rem; color: var(--ink-soft); }
+.tips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.tips article { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 6px; align-content: start; }
+.tips article p { font-size: .94rem; color: var(--ink-soft); }
+.note { border-left: 4px solid var(--sun); background: var(--sheet); padding: 12px 16px; border-radius: 0 12px 12px 0; font-size: .95rem; }
+
+/* acompanhamento */
+.kids { display: grid; gap: 12px; }
+.kid { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 12px; }
+.kid-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
+.kid-head h3 { display: flex; align-items: center; gap: 8px; }
+.kid-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; font-size: .84rem; color: var(--ink-soft); }
+.kid-stats b { display: block; font-family: var(--f-display); font-size: 1.25rem; color: var(--ink); }
+.kid .msg { white-space: pre-wrap; }
+
+/* portão de identificação */
+.gate { position: fixed; inset: 0; z-index: 50; background: color-mix(in srgb, var(--bg) 96%, transparent); display: grid; place-items: center; padding: 16px; padding-top: calc(16px + env(safe-area-inset-top, 0px)); overflow-y: auto; }
+[hidden] { display: none !important; }
+.gate-card { width: min(460px, 100%); background: var(--sheet); border: 1px solid var(--line); border-radius: 20px; padding: 24px; display: grid; gap: 14px; box-shadow: 0 20px 60px -30px rgba(23, 32, 59, .45); }
+.gate-card .owl { width: 96px; margin: 0 auto; }
+.gate-card h2 { text-align: center; font-size: 1.6rem; }
+.gate-card > p { text-align: center; color: var(--ink-soft); font-size: .95rem; }
+.profiles { display: grid; gap: 8px; }
+.profile { display: flex; align-items: center; gap: 10px; text-align: left; border: 2px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 12px; padding: 10px 12px; cursor: pointer; font-family: var(--f-display); font-weight: 700; }
+.profile:hover { border-color: var(--brand); }
+.profile small { margin-left: auto; font-family: var(--f-body); font-weight: 400; color: var(--ink-soft); font-size: .8rem; }
+.field { display: grid; gap: 4px; font-family: var(--f-display); font-size: .9rem; color: var(--ink-soft); }
+.field input, .field select { font: inherit; font-family: var(--f-body); font-size: 1rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 0; width: 100%; }
+.gate-sep { display: flex; align-items: center; gap: 10px; color: var(--ink-soft); font-size: .85rem; }
+.gate-sep::before, .gate-sep::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+.err { color: var(--bad); font-size: .9rem; }
+
+footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: .86rem; color: var(--ink-soft); display: grid; gap: 6px; }
+
+@media (max-width: 760px) {
+  .stats { grid-template-columns: 1fr 1fr; }
+  .two, .tips, .area-panel { grid-template-columns: 1fr; }
+  .area-tabs, .facts { grid-template-columns: 1fr 1fr; }
+  .hello { grid-template-columns: 76px 1fr; gap: 12px; }
+  .feedback { grid-template-columns: 52px minmax(0, 1fr); gap: 10px; }
+  .start-cta { grid-template-columns: 1fr; }
+  .kid-stats { grid-template-columns: repeat(3, 1fr); }
+  .area-row { grid-template-columns: 7.5em 1fr 3em; }
+  nav.links { display: none; }
+  .player { padding: 16px; }
+}
+</style>
+
+<template id="sabiTpl">
+  <svg class="sabi" viewBox="0 0 120 132" aria-hidden="true">
+    <path d="M20 16 L36 30 L22 38 Z" fill="#5b4bd6"/>
+    <path d="M100 16 L84 30 L98 38 Z" fill="#5b4bd6"/>
+    <ellipse cx="60" cy="74" rx="44" ry="50" fill="#6c5ce7"/>
+    <ellipse cx="60" cy="90" rx="28" ry="30" fill="#ffe3b3"/>
+    <path d="M44 84 q4 4 8 0 M56 92 q4 4 8 0 M68 84 q4 4 8 0 M50 102 q4 4 8 0 M62 102 q4 4 8 0" stroke="#e7b96e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <circle cx="42" cy="52" r="17" fill="#fff"/>
+    <circle cx="78" cy="52" r="17" fill="#fff"/>
+    <g class="pupil"><circle cx="44" cy="54" r="7.5" fill="#17203b"/><circle cx="80" cy="54" r="7.5" fill="#17203b"/><circle cx="46.5" cy="51" r="2.4" fill="#fff"/><circle cx="82.5" cy="51" r="2.4" fill="#fff"/></g>
+    <path class="brow" d="M28 34 l26 6 M92 34 l-26 6" stroke="#3a2fa8" stroke-width="4" stroke-linecap="round"/>
+    <path d="M54 64 L66 64 L60 76 Z" fill="#ffb020"/>
+    <path d="M22 80 q-10 18 4 34 q6 -16 2 -34 Z M98 80 q10 18 -4 34 q-6 -16 -2 -34 Z" fill="#5b4bd6"/>
+    <path d="M30 18 L60 6 L90 18 L60 30 Z" fill="#17203b"/>
+    <path d="M60 18 L86 22 L86 34" stroke="#ffb020" stroke-width="2.5" fill="none"/>
+    <circle cx="86" cy="36" r="3.5" fill="#ffb020"/>
+    <path d="M46 122 l-6 6 M52 123 l0 6 M74 122 l6 6 M68 123 l0 6" stroke="#ffb020" stroke-width="3" stroke-linecap="round"/>
+  </svg>
+</template>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#inicio"><span id="brandSabi" style="width:30px;display:block"></span>Rumo à Etec</a>
+    <nav class="links" aria-label="Seções">
+      <a href="#inicio">Painel</a>
+      <a href="#trilha">Trilha</a>
+      <a href="#areas">Áreas</a>
+      <a href="#plano">Plano</a>
+      <a href="#familia">Família</a>
+    </nav>
+    <div class="who">
+      <button type="button" class="icon-btn" id="voiceBtn" aria-pressed="true" title="Ligar ou desligar a voz do Sabi" aria-label="Voz do Sabi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path class="wave" d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
+      </button>
+      <button type="button" class="who-btn" id="whoBtn" title="Trocar de aluno"><i class="avatar" id="whoAvatar">?</i><span id="whoName">Entrar</span></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="block" id="inicio" style="padding-top:0">
+    <div class="hello">
+      <div id="helloSabi"></div>
+      <div>
+        <p class="eyebrow">Vestibulinho Etec · Centro Paula Souza · SP</p>
+        <h1 id="helloTitle">Sua vaga na Etec começa <em>aqui</em>.</h1>
+        <p id="helloSub">Uma trilha de questões por dia, corrigida na hora pelo Sabi.</p>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat" style="--c: var(--brand)"><span class="eyebrow">Meta de hoje</span><b id="stToday">0/10</b><div class="bar"><i id="stTodayBar" style="width:0%"></i></div><span class="sub" id="stTodayMsg">Comece a trilha de hoje.</span></div>
+      <div class="stat" style="--c: var(--sun)"><span class="eyebrow">Sequência</span><b id="stStreak">0 dias</b><span class="sub" id="stStreakMsg">seguidos cumprindo a meta</span></div>
+      <div class="stat" style="--c: var(--ok)"><span class="eyebrow">Projeção na prova</span><b id="stProj">–</b><span class="sub" id="stProjMsg">acertos previstos em 50 questões</span></div>
+      <div class="stat" style="--c: var(--por)"><span class="eyebrow">Até a prova</span><b id="stDays">–</b><span class="sub" id="stDaysMsg">informe a data da prova</span></div>
+    </div>
+    <div class="start-cta">
+      <div><h3 id="ctaTitle">Trilha de hoje</h3><p>Questões misturadas de todas as áreas, uma de cada vez.</p></div>
+      <a class="btn sun" href="#trilha" id="ctaBtn">Começar a trilha</a>
+    </div>
+    <div class="card" style="display:grid;gap:12px">
+      <div class="row" style="justify-content:space-between"><h3>Jornada de 8 semanas</h3><span class="tip" id="jrnInfo"></span></div>
+      <div class="journey"><ol id="journey"></ol></div>
+    </div>
+    <div class="two">
+      <div class="card"><h3>Últimos 14 dias</h3><div class="chart" id="chart"></div><div class="days" id="chartDays"></div><p class="tip" style="margin-top:8px">Barras verdes: dia com meta cumprida. Linha tracejada: sua meta.</p></div>
+      <div class="card" style="display:grid;gap:12px;align-content:start"><h3>Projeção de acertos por área</h3><p class="tip" style="margin-top:-6px">Quantas questões de cada área costumam cair nas 50 da prova, e quantas você acertaria hoje.</p><div class="proj" id="areaBars"></div><ul class="attn" id="attn" hidden></ul><p class="tip" id="advice"></p></div>
+    </div>
+  </section>
+
+  <section class="block" id="trilha">
+    <div class="section-head">
+      <p class="eyebrow">Plano de estudo diário</p>
+      <h2>Trilha do dia</h2>
+      <p>Cada bolinha é uma etapa. Responda, veja na hora se acertou e siga para a próxima. Se errar, o Sabi explica o porquê. As questões vêm misturadas, Português, Matemática, Ciências e Humanas, uma área diferente a cada etapa, e a trilha traz mais questões do que você mais erra.</p>
+    </div>
+    <div class="trail-top">
+      <div class="trail-opts" id="trailAreas" role="group" aria-label="Área da trilha" hidden></div>
+      <div class="path" id="path"></div>
+    </div>
+    <div id="player"></div>
+  </section>
+
+  <section class="block" id="provas" hidden>
+    <div class="section-head">
+      <p class="eyebrow">Material oficial · <span id="ofTotal">290</span> questões</p>
+      <h2>Provas anteriores, uma questão por vez</h2>
+      <p>Escolha uma prova para percorrer como trilha, com correção na hora pelo gabarito oficial e explicação do Sabi. Toque na imagem da questão para ampliar.</p>
+    </div>
+    <div class="editions" id="editions"></div>
+    <p class="tip" id="ofLinks"></p>
+    <div class="path" id="ofPath"></div>
+    <div id="ofPlayer"></div>
+  </section>
+
+  <section class="block" id="areas">
+    <div class="section-head">
+      <p class="eyebrow">Estude por área do conhecimento</p>
+      <h2>Português, Matemática, Ciências e Humanas</h2>
+      <p>Veja o que cai em cada área e como estudar. As questões de todas as áreas aparecem misturadas na trilha do dia.</p>
+    </div>
+    <div class="area-tabs" id="areaTabs" role="tablist" aria-label="Áreas"></div>
+    <div id="areaPanels"></div>
+  </section>
+
+  <section class="block" id="plano">
+    <div class="section-head">
+      <p class="eyebrow">Organize-se</p>
+      <h2>Plano de 8 semanas</h2>
+      <p>A linha destacada é a sua semana atual, contada a partir do dia em que você entrou no site. Faça a trilha do dia e revise os temas da semana.</p>
+    </div>
+    <div class="plan" id="planTable"></div>
+  </section>
+
+  <section class="block" id="prova">
+    <div class="section-head">
+      <p class="eyebrow">Conheça o exame</p>
+      <h2>Como é a prova</h2>
+      <p>Para o Ensino Médio e o ETIM, a seleção é uma prova objetiva interdisciplinar sobre o que se aprende até o 9º ano. Cada edição tem um tema central que costura todas as matérias.</p>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>50</b><span>questões de múltipla escolha</span></div>
+      <div class="fact"><b>A–E</b><span>cinco alternativas, só uma correta</span></div>
+      <div class="fact"><b>4 h</b><span>de prova, sem calculadora</span></div>
+      <div class="fact"><b>~4,8</b><span>minutos por questão</span></div>
+    </div>
+    <p class="note"><b>Confira sempre a fonte oficial.</b> Datas, taxa e regras de pontuação acrescida mudam a cada edição. Tudo o que vale está no Manual do Candidato em <a href="https://vestibulinho.etec.sp.gov.br" target="_blank" rel="noopener">vestibulinho.etec.sp.gov.br</a>.</p>
+    <div class="tips">
+      <article><h3>Comece pelo que sabe</h3><p>Resolva primeiro as fáceis, marque as difíceis e volte nelas depois.</p></article>
+      <article><h3>Controle o relógio</h3><p>Reserve os últimos 30 minutos para passar as respostas para a folha.</p></article>
+      <article><h3>Elimine alternativas</h3><p>Risque as absurdas. Entre duas, escolha a que o texto comprova.</p></article>
+      <article><h3>Nunca deixe em branco</h3><p>Só os acertos contam. Se o tempo acabar, marque a mais provável.</p></article>
+      <article><h3>Leia a pergunta primeiro</h3><p>Saber o que se pede antes de ler o texto economiza tempo.</p></article>
+      <article><h3>Cuide de você</h3><p>Durma bem na véspera, coma antes e leve água e documento com foto.</p></article>
+    </div>
+  </section>
+
+  <section class="block" id="familia">
+    <div class="section-head">
+      <p class="eyebrow">Para pais e responsáveis</p>
+      <h2>Acompanhamento da família</h2>
+      <p>Aqui aparecem todos os alunos que estudam neste aparelho, com a meta do dia, a sequência, a semana da jornada e o aproveitamento por área. Os dados ficam só neste aparelho. Se cada filho estuda no próprio celular, peça para ele tocar em <b>Copiar relatório</b> e mandar para você por mensagem.</p>
+    </div>
+    <div class="kids" id="kids"></div>
+  </section>
+
+  <footer>
+    <p><b>Rumo à Etec</b> é um material de estudo independente, sem ligação oficial com o Centro Paula Souza.</p>
+    <p>As questões oficiais e os gabaritos foram reproduzidos dos cadernos públicos do Vestibulinho Etec (Centro Paula Souza / Fundação FAT) para fins de estudo. As explicações são nossas.</p>
+  </footer>
+</main>
+
+<div class="gate" id="gate" hidden>
+  <div class="gate-card" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+    <div class="owl" id="gateSabi"></div>
+    <h2 id="gateTitle">Olá! Eu sou o Sabi.</h2>
+    <p>Quem vai estudar agora? Seu nome e seu progresso ficam guardados só neste aparelho.</p>
+    <div class="profiles" id="gateProfiles"></div>
+    <div class="gate-sep" id="gateSep">ou crie um novo aluno</div>
+    <form id="gateForm" style="display:grid;gap:12px" autocomplete="off">
+      <label class="field" for="gName">Seu nome<input id="gName" type="text" maxlength="30" placeholder="Ex.: Ana"></label>
+      <div class="two" style="gap:10px">
+        <label class="field" for="gGoal">Meta por dia<select id="gGoal"><option value="40" selected>40 questões</option><option value="30">30 questões</option><option value="20">20 questões</option><option value="15">15 questões</option><option value="10">10 questões</option></select></label>
+        <label class="field" for="gDate">Data da prova<input id="gDate" type="date" value="2026-12-06"></label>
+      </div>
+      <p class="err" id="gErr" hidden>Digite seu nome para continuar.</p>
+      <button class="btn" type="submit" style="justify-content:center">Começar a estudar</button>
+    </form>
+    <button type="button" class="btn ghost small" id="gateFamily" style="justify-self:center">Sou responsável: ver acompanhamento</button>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const L = "ABCDE";
+const AREAS = ["Português", "Matemática", "Ciências", "Humanas"];
+const AREA_NAME = { "Português": "Língua Portuguesa", "Matemática": "Matemática", "Ciências": "Ciências da Natureza", "Humanas": "Ciências Humanas" };
+const NIVEL = { f1: "Fundamental I", f2: "Fundamental II", vest: "Estilo prova" };
+const dayKey = (dt = new Date()) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+function sabi(cls) { const n = $("#sabiTpl").content.firstElementChild.cloneNode(true); if (cls) n.classList.add(cls); return n; }
+function put(el, cls) { el.innerHTML = ""; el.append(sabi(cls)); }
+function hash(str) { let h = 2166136261; for (const c of str) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { return () => ((seed = (Math.imul(seed ^ (seed >>> 15), 2246822507) + 0x9e3779b9) >>> 0) / 4294967296); }
+
+/* ===== armazenamento: só neste aparelho ===== */
+const KEY = "rumo-etec-v2";
+let DB = { profiles: [], current: null, voice: true };
+try { DB = Object.assign(DB, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
+if (!DB.exam27) { DB.profiles.forEach(p => { if (!p.exam || p.exam < "2026-12-06") p.exam = "2026-12-06"; }); DB.exam27 = true; try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} }
+if (!DB.goal40) { DB.profiles.forEach(p => { p.goal = 40; }); DB.goal40 = true; try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} }
+const me = () => DB.profiles.find(p => p.id === DB.current) || null;
+function newProfile(name, goal, exam) {
+  const p = { id: "p" + Date.now().toString(36), name, goal: +goal || 40, exam: exam || "2026-12-06", created: dayKey(), days: {}, log: [], seen: {}, trail: null, exams: {} };
+  DB.profiles.push(p); DB.current = p.id; save(); return p;
+}
+
+/* ===== conteúdo ===== */
+let OWN = [], EXAMS = [], OFX = {}, QMAP = {}, TXT = {};
+const PLAN = [
+  { t: "Base e leitura", p: "Interpretação de texto e gêneros", m: "Operações, frações e decimais", c: "Corpo humano e saúde", h: "Brasil Colônia" },
+  { t: "Textos e proporção", p: "Tirinhas, charges e infográficos", m: "Razão, proporção e regra de três", c: "Ecologia e cadeias alimentares", h: "Império e abolição" },
+  { t: "Sentido e porcentagem", p: "Conectivos e relações de sentido", m: "Porcentagem e juros simples", c: "Ciclos da água e do carbono", h: "Cartografia e escala" },
+  { t: "Linguagem e álgebra", p: "Figuras de linguagem", m: "Equações do 1º grau", c: "Matéria e misturas", h: "República e cidadania" },
+  { t: "Variação e geometria", p: "Variação linguística", m: "Perímetro, área e Pitágoras", c: "Energia e suas transformações", h: "Revolução Industrial e guerras" },
+  { t: "Gramática e dados", p: "Pontuação e concordância", m: "Gráficos, tabelas e estatística", c: "Movimento e eletricidade", h: "Urbanização e meio ambiente" },
+  { t: "Revisão geral", p: "Revisar os temas com mais erros", m: "Revisar os temas com mais erros", c: "Revisar os temas com mais erros", h: "Geografia de São Paulo" },
+  { t: "Reta final", p: "Trilhas de 40 misturadas", m: "Trilhas de 40 misturadas", c: "Revisar os erros", h: "Descanso na véspera" }
+];
+const CONTENT = {
+  "Português": { d: "Leitura, gramática e gêneros", li: ["Interpretação de textos verbais e não verbais (tirinhas, charges, anúncios, infográficos)", "Gêneros textuais e sua finalidade: notícia, crônica, receita, carta, propaganda, poema", "Sentido de palavras no contexto; linguagem conotativa e denotativa", "Conectivos e relações de sentido (causa, concessão, conclusão, oposição)", "Figuras de linguagem: metáfora, comparação, personificação, ironia, hipérbole", "Variação linguística e adequação da linguagem", "Pontuação, concordância e regência"], tip: "Leia a pergunta antes do texto e volte ao texto para provar a resposta. Quase toda questão traz a resposta escrita no próprio texto." },
+  "Matemática": { d: "Números, proporção, geometria", li: ["Operações com inteiros, frações e decimais", "Razão, proporção, regra de três e escala", "Porcentagem, descontos, acréscimos e juros simples", "Equações do 1º grau e problemas", "Perímetro, área, volume e Teorema de Pitágoras", "Unidades de medida (comprimento, massa, tempo)", "Gráficos e tabelas; média, moda, mediana; probabilidade"], tip: "Refaça as contas à mão, sem calculadora, porque na prova ela não é permitida. Treine montar a conta a partir do texto." },
+  "Ciências": { d: "Biologia, Física e Química", li: ["Corpo humano: digestão, respiração, circulação; saúde e vacinas", "Ecologia: cadeias alimentares, ciclos da água e do carbono", "Fotossíntese e respiração celular", "Estados físicos da matéria e mudanças de estado", "Misturas e separação (filtração, decantação, destilação)", "Energia e suas transformações; fontes renováveis", "Movimento, velocidade média e eletricidade"], tip: "Ligue cada conceito a algo do dia a dia, como a panela de pressão, o filtro de água ou a conta de luz. A prova adora essas situações." },
+  "Humanas": { d: "História e Geografia", li: ["Brasil Colônia, Império e República; escravidão e abolição", "Revolução Industrial, Guerras Mundiais e Guerra Fria", "Cidadania, direitos humanos e Constituição de 1988", "Mapas: escala, coordenadas, legendas e fusos horários", "Urbanização, problemas urbanos e meio ambiente", "Geografia de São Paulo: relevo, rios, regiões e economia", "Globalização, população e migrações"], tip: "Monte uma linha do tempo em uma folha e treine a leitura de mapas e gráficos. Atualidades aparecem nos textos de apoio." }
+};
+
+/* ===== voz ===== */
+let ptVoice = null;
+function pickVoice() { try { const vs = speechSynthesis.getVoices(); ptVoice = vs.find(v => /pt[-_]BR/i.test(v.lang)) || vs.find(v => /^pt/i.test(v.lang)) || null; } catch (e) {} }
+try { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {}
+function speak(text) {
+  if (!DB.voice) return;
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "pt-BR"; if (ptVoice) u.voice = ptVoice; u.rate = 1.02; u.pitch = 1.1; speechSynthesis.speak(u); } catch (e) {}
+}
+function hush() { try { speechSynthesis.cancel(); } catch (e) {} }
+function renderVoice() { $("#voiceBtn").setAttribute("aria-pressed", DB.voice); $("#voiceBtn .wave").style.display = DB.voice ? "" : "none"; }
+$("#voiceBtn").addEventListener("click", () => { DB.voice = !DB.voice; save(); renderVoice(); if (DB.voice) speak("Voz ligada."); else hush(); });
+
+/* ===== registro e métricas ===== */
+function record(q, ok) {
+  const p = me(); if (!p) return;
+  const k = dayKey(); const d = p.days[k] || { q: 0, ok: 0 };
+  d.q++; if (ok) d.ok++; p.days[k] = d;
+  p.log.push([Date.now(), q.area, ok ? 1 : 0, q.official ? 1 : 0]);
+  if (p.log.length > 4000) p.log = p.log.slice(-4000);
+  p.tm = p.tm || {}; const tk = q.area + "|" + (q.tema || "Outros"); const tv = p.tm[tk] || [0, 0]; tv[0]++; if (ok) tv[1]++; p.tm[tk] = tv;
+  p.seen[q.id] = (p.seen[q.id] || 0) + 1;
+  if (ok) delete p.seen[q.id + ":err"]; else p.seen[q.id + ":err"] = 1;
+  save();
+}
+/* projeção: média ponderada, com mais peso para respostas recentes e para questões oficiais */
+function accuracy(log) {
+  if (!log.length) return null;
+  let w = 0, s = 0;
+  log.forEach((x, i) => { const wt = (1 + i / log.length) * (x[3] ? 2 : 1); w += wt; s += wt * x[2]; });
+  return s / w;
+}
+/* projeção por área: peso de cada área nas provas oficiais x aproveitamento do aluno */
+function projection(p) {
+  const cnt = {}; let tot = 0;
+  EXAMS.forEach(e => e.q.forEach(q => { if (q.area) { cnt[q.area] = (cnt[q.area] || 0) + 1; tot++; } }));
+  const all = accuracy(p.log);
+  if (!p.tm && Object.keys(QMAP).length) {
+    p.tm = {};
+    Object.keys(p.seen).filter(k => !k.endsWith(":err")).forEach(id => { const q = QMAP[id]; if (!q) return; const k = q.area + "|" + (q.tema || "Outros"); const v = p.tm[k] || [0, 0]; v[0] += p.seen[id]; v[1] += p.seen[id] - (p.seen[id + ":err"] ? 1 : 0); p.tm[k] = v; });
+    save();
+  }
+  const per = AREAS.map(a => {
+    const l = p.log.filter(x => x[1] === a), acc = accuracy(l);
+    const inExam = tot ? Math.round(50 * (cnt[a] || 0) / tot) : 12;
+    const use = l.length >= 3 ? acc : all;
+    const lvl = acc === null || l.length < 3 ? "none" : acc < .5 ? "bad" : acc < .7 ? "mid" : "good";
+    return { a, n: l.length, acc, inExam, hits: use === null ? null : Math.round(inExam * use), lvl, gain: use === null ? 0 : Math.max(0, Math.round(inExam * .8) - Math.round(inExam * use)) };
+  });
+  const total = all === null ? null : Math.min(50, per.reduce((s, x) => s + (x.hits || 0), 0));
+  const attn = Object.entries(p.tm || {}).map(([k, v]) => { const [a, t] = k.split("|"); return { a, t, n: v[0], ok: v[1], err: v[0] - v[1] }; })
+    .filter(x => x.err > 0 && x.ok / x.n < .7).sort((x, y) => y.err - x.err || x.ok / x.n - y.ok / y.n).slice(0, 5);
+  return { total, per, attn };
+}
+const LVL = { bad: "prioridade", mid: "atenção", good: "bom", none: "poucos dados" };
+function streakOf(p) {
+  let n = 0; const dt = new Date();
+  if (!((p.days[dayKey(dt)] || { q: 0 }).q >= p.goal)) dt.setDate(dt.getDate() - 1);
+  while ((p.days[dayKey(dt)] || { q: 0 }).q >= p.goal) { n++; dt.setDate(dt.getDate() - 1); }
+  return n;
+}
+const weekOf = p => Math.max(0, Math.floor((new Date() - new Date(p.created + "T00:00:00")) / 86400000 / 7));
+
+/* ===== painel ===== */
+function renderPanel() {
+  put($("#helloSabi"));
+  const p = me(); renderPlan();
+  if (!p) return;
+  $("#whoName").textContent = p.name; $("#whoAvatar").textContent = p.name.trim()[0]?.toUpperCase() || "?";
+  $("#helloTitle").innerHTML = `Olá, <em>${esc(p.name)}</em>! Bora pra trilha?`;
+  const today = p.days[dayKey()] || { q: 0, ok: 0 };
+  $("#stToday").textContent = `${today.q}/${p.goal}`;
+  $("#stTodayBar").style.width = Math.min(100, today.q / p.goal * 100) + "%";
+  $("#stTodayMsg").textContent = today.q >= p.goal ? "Meta cumprida hoje. Mandou bem!" : today.q ? `Faltam ${p.goal - today.q} questões.` : "Comece a trilha de hoje.";
+  $("#helloSub").textContent = today.q >= p.goal ? "Meta de hoje cumprida. Se quiser, faça mais uma trilha." : `Sua meta é ${p.goal} questões por dia. O Sabi corrige cada uma na hora.`;
+  const st = streakOf(p);
+  $("#stStreak").textContent = st === 1 ? "1 dia" : `${st} dias`;
+  const act7 = [...Array(7)].filter((_, i) => { const x = new Date(); x.setDate(x.getDate() - i); return (p.days[dayKey(x)] || { q: 0 }).q > 0; }).length;
+  $("#stStreakMsg").textContent = `seguidos na meta · estudou ${act7} dos últimos 7 dias`;
+  const acc = accuracy(p.log), PJ = projection(p);
+  if (acc === null) { $("#stProj").textContent = "–"; $("#stProjMsg").textContent = "responda questões para calcular"; }
+  else { $("#stProj").textContent = `${PJ.total}/50`; $("#stProjMsg").textContent = p.log.length < 30 ? `estimativa com ${p.log.length} respostas; melhora após 30` : `acertos previstos, com base em ${p.log.length} respostas`; }
+  if (p.exam) {
+    const diff = Math.ceil((new Date(p.exam + "T12:00:00") - new Date()) / 86400000);
+    $("#stDays").textContent = diff >= 0 ? (diff === 1 ? "1 dia" : `${diff} dias`) : "–";
+    $("#stDaysMsg").textContent = diff >= 0 ? `prova em ${p.exam.split("-").reverse().join("/")}${p.exam === "2026-12-06" ? ", às 13h30" : ""} · ${diff * p.goal} questões até lá` : "a data informada já passou";
+  } else { $("#stDays").textContent = "–"; $("#stDaysMsg").textContent = "toque no seu nome, no topo, para informar"; }
+  const t = p.trail && p.trail.date === dayKey() ? p.trail : null;
+  const done = t ? t.ans.filter(a => a !== null).length : 0;
+  $("#ctaTitle").textContent = t && done >= Math.max(t.ids.length, p.goal) ? "Trilha de hoje concluída" : `Trilha de hoje · etapa ${done + 1} de ${t ? Math.max(t.ids.length, p.goal) : p.goal}`;
+  $("#ctaBtn").textContent = done ? "Continuar a trilha" : "Começar a trilha";
+
+  const wk = weekOf(p);
+  $("#jrnInfo").textContent = wk < 8 ? `Você está na semana ${wk + 1}` : "Jornada concluída. Continue revisando!";
+  const start = new Date(p.created + "T12:00:00");
+  $("#journey").innerHTML = PLAN.map((w, i) => {
+    let q = 0; for (let d = 0; d < 7; d++) { const x = new Date(start); x.setDate(x.getDate() + i * 7 + d); q += (p.days[dayKey(x)] || { q: 0 }).q; }
+    const cls = i < wk ? "done" : i === wk ? "now" : "";
+    return `<li class="${cls}"><span class="wk">${i < wk ? "✓" : i + 1}</span><span class="wt">${w.t}</span><span class="ws">${w.m}</span><span class="wp">${q}/${p.goal * 6} questões</span></li>`;
+  }).join("");
+
+  const days = [...Array(14)].map((_, i) => { const x = new Date(); x.setDate(x.getDate() - 13 + i); return { k: dayKey(x), lab: x.getDate(), q: (p.days[dayKey(x)] || { q: 0 }).q }; });
+  const max = Math.max(p.goal * 1.3, ...days.map(x => x.q));
+  $("#chart").innerHTML = days.map(x => `<div class="col ${x.q >= p.goal ? "ok" : ""}" style="height:${Math.max(1, x.q / max * 100)}%" title="${x.k}: ${x.q} questões">${x.q ? `<span>${x.q}</span>` : ""}</div>`).join("") + `<div class="goal" style="bottom:${p.goal / max * 100}%"></div>`;
+  $("#chartDays").innerHTML = days.map(x => `<span>${x.lab}</span>`).join("");
+  const per = PJ.per;
+  $("#areaBars").innerHTML = per.map(x => `<div class="proj-row" data-area="${x.a}"><span class="nm">${x.a}<span class="lvl ${x.lvl}">${LVL[x.lvl]}</span><br><small>${x.n} respondidas · ${x.acc === null ? "sem dados" : Math.round(x.acc * 100) + "% de acerto"}</small></span><span class="hits">${x.hits === null ? "–" : x.hits}/${x.inExam}</span><div class="bar"><i style="width:${x.hits === null ? 0 : Math.round(x.hits / x.inExam * 100)}%"></i></div></div>`).join("");
+  $("#attn").innerHTML = PJ.attn.length ? PJ.attn.map(x => `<li data-area="${x.a}"><span>${esc(x.t)} <small class="tip">· ${x.a}</small></span><span>errou ${x.err} de ${x.n}</span></li>`).join("") : `<li style="grid-template-columns:1fr" class="tip">${p.log.length ? "Nenhum tema com muitos erros até agora." : "Responda a trilha para descobrir seus pontos fracos."}</li>`;
+  const weak = per.filter(x => x.n >= 3).sort((a, b) => a.acc - b.acc)[0];
+  const none = per.filter(x => !x.n).map(x => x.a);
+  $("#advice").textContent = !p.log.length ? "A projeção aparece depois das primeiras questões." : weak && weak.gain ? `Foque em ${weak.a}: chegando a 80% de acerto nessa área, você ganha cerca de ${weak.gain} acertos na prova. A trilha já traz mais questões dela.` + (none.length ? ` Ainda falta treinar ${none.join(", ")}.` : "") : none.length ? `Você ainda não treinou ${none.join(", ")}.` : "Responda pelo menos 3 questões de cada área para ver a recomendação.";
+}
+
+/* ===== questões normalizadas ===== */
+function ownToQ(o) {
+  return { id: "own-" + o.id, area: o.a, official: false, nivel: o.nivel, ctx: o.ctx, stem: o.q, opts: o.o, c: o.c,
+    certa: o.e, erradas: o.erradas || {}, dica: o.dica || "", tema: o.tema || "", svg: o.svg || "" };
+}
+/* texto digitado das questões oficiais: só algumas tags inline são permitidas */
+function rich(t) {
+  return esc(t || "").replace(/&lt;(\/?)(i|b|u|sup|sub|br)&gt;/g, "<$1$2>");
+}
+function paras(t) {
+  return (t || "").split(/\n\n+/).map(p => { const src = /^&lt;https?:|^<https?:|^Fonte|Acesso em/.test(p.trim()); return `<p${src ? ' class="src"' : ""}>${rich(p).replace(/\n/g, "<br>")}</p>`; }).join("");
+}
+function tableHTML(t) {
+  return esc(t || "").replace(/&lt;(\/?)(table|thead|tbody|tr|th|td|i|b|u|sup|sub|br)((?:\s+[a-z]+=(?:&quot;|&#39;)?[^&\s]*(?:&quot;|&#39;)?)*)\s*\/?&gt;/g, (m, sl, tg, at) => {
+    const span = (at || "").match(/(rowspan|colspan)=(?:&quot;|&#39;)?(\d+)/g) || [];
+    return `<${sl}${tg}${span.map(x => " " + x.replace(/(&quot;|&#39;)/g, "").replace(/=(\d+)/, '="$1"')).join("")}>`;
+  });
+}
+function ofToQ(q, e) {
+  const x = OFX[`${e.id}-${String(q.n).padStart(2, "0")}`] || {};
+  const er = {}; Object.entries(x.erradas || {}).forEach(([k, v]) => { er[L.indexOf(k)] = v; });
+  return { id: `of-${e.id}-${q.n}`, area: q.area, official: true, ed: e.label, n: q.n, img: q.img, w: q.w, h: q.h, alt: q.alt, c: q.c,
+    certa: x.certa || "", erradas: er, dica: x.dica || "", tema: x.tema || "", tx: TXT[`${e.id}-${String(q.n).padStart(2, "0")}`] || null };
+}
+const allOf = () => EXAMS.flatMap(e => e.q.filter(q => q.c >= 0).map(q => ofToQ(q, e))).filter(q => !q.tx || q.tx.ok !== false || q.tx.stem);
+
+/* ===== trilha diária: questões erradas voltam, inéditas primeiro, mais peso para a área mais fraca ===== */
+function buildTrail(p, area, salt = "") {
+  const r = rng(hash(p.id + dayKey() + area + salt));
+  let pool = Object.values(QMAP);
+  if (area !== "mix") pool = pool.filter(q => q.area === area);
+  const score = q => (p.seen[q.id + ":err"] ? -1 : 0) + (p.seen[q.id] || 0) * 2 + r();
+  const n = p.goal; let picks = [];
+  if (area === "mix") {
+    const per = AREAS.map(a => { const acc = accuracy(p.log.filter(x => x[1] === a)); return { a, w: acc === null ? 1 : 1.6 - acc }; });
+    const tot = per.reduce((s, x) => s + x.w, 0);
+    const quota = per.map(x => ({ a: x.a, k: Math.max(1, Math.round(n * x.w / tot)) }));
+    while (quota.reduce((s, x) => s + x.k, 0) > n) quota.sort((a, b) => b.k - a.k)[0].k--;
+    while (quota.reduce((s, x) => s + x.k, 0) < n) quota[Math.floor(r() * 4)].k++;
+    quota.forEach(({ a, k }) => {
+      const cand = pool.filter(q => q.area === a).sort((x, y) => score(x) - score(y));
+      const own = cand.filter(q => !q.official), of = cand.filter(q => q.official);
+      for (let i = 0; i < k; i++) { const src = (i % 3 === 0 && own.length) ? own : (of.length ? of : own); if (src.length) picks.push(src.shift()); }
+    });
+    for (let i = picks.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [picks[i], picks[j]] = [picks[j], picks[i]]; }
+    /* intercala: nunca duas etapas seguidas da mesma área ou do mesmo tema */
+    const out = []; let rest = picks;
+    while (rest.length) {
+      const last = out[out.length - 1];
+      const left = a => rest.filter(q => q.area === a).length;
+      let cand = rest.filter(q => !last || (q.area !== last.area && (!q.tema || q.tema !== last.tema)));
+      if (!cand.length) cand = rest;
+      const most = Math.max(...cand.map(q => left(q.area)));
+      const pool2 = cand.filter(q => left(q.area) >= most - 1);
+      const pick = pool2[Math.floor(r() * pool2.length)];
+      out.push(pick); rest = rest.filter(q => q !== pick);
+    }
+    picks = out;
+  } else picks = pool.sort((x, y) => score(x) - score(y)).slice(0, n);
+  return { date: dayKey(), area, ids: picks.map(q => q.id), ans: picks.map(() => null) };
+}
+
+/* ===== player: uma questão por vez ===== */
+function pathHTML(list, ans, cur) {
+  return `<ol>${list.map((q, i) => {
+    const a = ans[i]; const st = a === null ? (i === cur ? "cur" : "") : a === q.c ? "r" : "w";
+    return `<li class="${a !== null ? "past" : ""}" data-area="${q.area}"><span class="node ${st}" title="Etapa ${i + 1} · ${q.area}">${a === null ? i + 1 : a === q.c ? "✓" : "✗"}</span></li>`;
+  }).join("")}<li><span class="node goal" title="Chegada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg></span></li></ol>`;
+}
+function mountPlayer(cfg) {
+  const { box, pathBox, list, ans } = cfg;
+  const cur = ans.findIndex(a => a === null);
+  pathBox.innerHTML = pathHTML(list, ans, cur);
+  const cn = pathBox.querySelector(".node.cur"); if (cn) pathBox.scrollLeft = Math.max(0, cn.offsetLeft - pathBox.clientWidth / 2);
+  if (cur === -1) { finishView(cfg); return; }
+  const q = list[cur];
+  const tag = q.official ? `<span class="chip">${esc(q.ed)} · nº ${String(q.n).padStart(2, "0")}</span>` : `<span class="chip">${NIVEL[q.nivel] || ""}</span>`;
+  const head = `<div class="qhead"><span class="num">Etapa ${cur + 1} de ${list.length}</span><span class="row" style="gap:6px"><span class="chip" data-area="${q.area}">${q.area}</span>${tag}</span></div>`;
+  const tx = q.official && q.tx && q.tx.stem && q.tx.opts && q.tx.opts.length === 5 ? q.tx : null;
+  const fig = tx && tx.fig ? `<figure class="qfig"><img src="${tx.fig}" alt="${esc(tx.figAlt || "")}" decoding="async"></figure>` : "";
+  const body = tx
+    ? `${tx.ctx ? `<div class="ctx">${paras(tx.ctx)}</div>` : ""}${tx.figPos !== "opts" ? fig : ""}${tx.table ? `<div class="qtable">${tableHTML(tx.table)}</div>` : ""}<div class="stem">${paras(tx.stem)}</div>${tx.figPos === "opts" ? fig : ""}
+       <div class="opts">${tx.opts.map((t, j) => `<button type="button" class="opt" data-o="${j}"><span class="bub">${L[j]}</span><span>${rich(t)}</span></button>`).join("")}</div>`
+    : q.official
+    ? `<div class="qimg"><img src="${q.img}" width="${q.w}" height="${q.h}" alt="${esc(q.alt)}" decoding="async"></div>
+       <p class="tip">Toque na imagem para ampliar. Escolha sua resposta:</p>
+       <div class="lettergrid">${[0, 1, 2, 3, 4].map(j => `<button type="button" class="opt" data-o="${j}" aria-label="Alternativa ${L[j]}"><span class="bub">${L[j]}</span></button>`).join("")}</div>`
+    : `${q.ctx ? `<div class="ctx">${esc(q.ctx)}</div>` : ""}<p class="stem">${esc(q.stem)}</p>
+       <div class="opts">${q.opts.map((t, j) => `<button type="button" class="opt" data-o="${j}"><span class="bub">${L[j]}</span><span>${esc(t)}</span></button>`).join("")}</div>`;
+  box.innerHTML = `<article class="player" data-area="${q.area}">${head}${body}<div class="fb"></div><div class="player-foot" hidden><span class="tip"></span><button type="button" class="btn next">${cur + 1 < list.length ? "Próxima etapa →" : "Ver resultado"}</button></div></article>`;
+  const art = box.firstElementChild;
+  art.querySelectorAll(".qimg, .qfig").forEach(el => el.addEventListener("click", () => el.classList.toggle("zoom")));
+  art.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => {
+    if (ans[cur] !== null) return;
+    const pick = +b.dataset.o;
+    art.querySelectorAll(".opt").forEach((x, j) => { x.disabled = true; if (j === q.c) x.classList.add("right"); else if (j === pick) x.classList.add("wrong"); });
+    ans[cur] = pick;
+    record(q, pick === q.c);
+    cfg.onAnswer && cfg.onAnswer();
+    showFeedback(art.querySelector(".fb"), q, pick);
+    pathBox.innerHTML = pathHTML(list, ans, -1);
+    const foot = art.querySelector(".player-foot"); foot.hidden = false;
+    const p = me(); foot.querySelector(".tip").textContent = p ? `Hoje: ${(p.days[dayKey()] || { q: 0 }).q}/${p.goal} questões` : "";
+    foot.querySelector(".next").addEventListener("click", () => { hush(); mountPlayer(cfg); pathBox.scrollIntoView({ block: "start" }); });
+    renderPanel(); renderKids();
+  }));
+}
+const PRAISE = ["Acertou!", "Mandou bem!", "Isso aí!", "Muito bem!", "Certinho!"];
+const OOPS = ["Quase!", "Não foi dessa vez.", "Vamos entender juntos."];
+function showFeedback(box, q, pick) {
+  const ok = pick === q.c;
+  const say = ok ? PRAISE[Math.floor(Math.random() * PRAISE.length)] : OOPS[Math.floor(Math.random() * OOPS.length)];
+  const ot = q.tx && q.tx.opts && !(q.tx.figPos === "opts") ? q.tx.opts.map(x => x.replace(/<[^>]+>/g, "")) : q.official ? null : q.opts;
+  const pickTxt = !ot ? `a alternativa ${L[pick]}` : `a alternativa ${L[pick]} (“${ot[pick]}”)`;
+  const rightTxt = !ot ? `a ${L[q.c]}` : `a ${L[q.c]}: “${ot[q.c]}”`;
+  const why = q.erradas[pick] || "";
+  const certa = q.certa || "Confira no texto e na imagem da questão o trecho que confirma a resposta.";
+  let html = `<p class="say">${say}${q.tema ? `<span class="chip" data-area="${q.area}">${esc(q.tema)}</span>` : ""}</p>`;
+  if (!ok) html += `<p><span class="lbl">Você marcou ${esc(pickTxt)}.</span> ${esc(why)}</p>`;
+  html += `<p><span class="lbl">A resposta certa é ${esc(rightTxt)}.</span> ${esc(certa)}</p>`;
+  if (q.dica) html += `<p class="dica"><b>Dica do Sabi:</b> ${esc(q.dica)}</p>`;
+  if (q.svg) html += `<div class="ill">${q.svg}</div>`;
+  box.innerHTML = `<div class="feedback ${ok ? "ok" : "no"}"><div class="owl"></div><div class="bubble">${html}</div></div>`;
+  put(box.querySelector(".owl"), ok ? "" : "think");
+  speak(ok ? `${say} ${certa}` : `${say} Você marcou a letra ${L[pick]}. ${why} A resposta certa é a letra ${L[q.c]}. ${certa} ${q.dica ? "Dica: " + q.dica : ""}`);
+}
+function finishView(cfg) {
+  const { box, list, ans } = cfg;
+  const right = ans.filter((a, i) => a === list[i].c).length;
+  const pct = Math.round(right / list.length * 100);
+  const msg = pct >= 80 ? "Excelente! Você está no ritmo da aprovação." : pct >= 60 ? "Bom trabalho! Revise as explicações das que errou." : "Cada erro de hoje vira acerto na prova. Amanhã tem mais!";
+  box.innerHTML = `<div class="player finish"><div class="owl"></div><p class="eyebrow">${esc(cfg.title)}</p><p class="big">${right}/${list.length}</p><p>${msg}</p><div class="row" style="justify-content:center"><button type="button" class="btn again">${esc(cfg.againLabel)}</button><a class="btn ghost" href="#inicio">Ver meu painel</a></div></div>`;
+  put(box.querySelector(".owl"));
+  box.querySelector(".again").addEventListener("click", cfg.again);
+}
+
+/* ===== trilha do dia ===== */
+let trailArea = "mix"; /* sempre misturado: o pedido é uma trilha só, com todas as áreas */
+function renderTrailAreas() {
+  const opts = [["mix", "Misturado"], ...AREAS.map(a => [a, a])];
+  $("#trailAreas").innerHTML = opts.map(([k, t]) => `<button type="button" class="pill" ${k !== "mix" ? `data-area="${k}"` : ""} data-k="${k}" aria-pressed="${k === trailArea}">${t}</button>`).join("");
+  $$("#trailAreas .pill").forEach(b => b.addEventListener("click", () => { trailArea = b.dataset.k; startTrail(); }));
+}
+function startTrail(salt) {
+  const p = me(); if (!p || !OWN.length) return;
+  renderTrailAreas();
+  if (salt || !p.trail || p.trail.date !== dayKey() || p.trail.area !== trailArea) { p.trail = buildTrail(p, trailArea, salt || ""); save(); }
+  if (p.trail.ids.length < p.goal) {
+    const more = buildTrail(p, trailArea, "meta").ids.filter(id => !p.trail.ids.includes(id)).slice(0, p.goal - p.trail.ids.length);
+    p.trail.ids.push(...more); p.trail.ans.push(...more.map(() => null)); save();
+  }
+  const list = p.trail.ids.map(id => QMAP[id]).filter(Boolean);
+  if (list.length !== p.trail.ids.length) { p.trail = buildTrail(p, trailArea, "x"); save(); return startTrail(); }
+  mountPlayer({ box: $("#player"), pathBox: $("#path"), list, ans: p.trail.ans, title: "Trilha do dia concluída", onAnswer: save,
+    again: () => startTrail(String(Date.now())), againLabel: "Fazer mais uma trilha" });
+}
+
+/* ===== provas oficiais ===== */
+let ofKey = null; let mixState = null;
+function renderEditions() {
+  const items = EXAMS.map(e => ({ k: e.id, t: e.label, s: `Prova de ${e.date} · ${e.q.length} questões` }));
+  items.push({ k: "mix", t: "Sorteio", s: "20 questões de todas as provas" });
+  $("#editions").innerHTML = items.map(i => `<button type="button" class="edition" data-k="${i.k}" aria-pressed="${i.k === ofKey}"><b>${i.t}</b><span>${i.s}</span></button>`).join("");
+  $$("#editions .edition").forEach(b => b.addEventListener("click", () => openExam(b.dataset.k, true)));
+}
+function openExam(k, scroll, fresh) {
+  ofKey = k; renderEditions();
+  const p = me(); if (!p) return;
+  p.exams = p.exams || {};
+  let list, ans;
+  if (k === "mix") {
+    if (!mixState || fresh || scroll) {
+      const all = allOf(); const r = rng(Date.now() >>> 0);
+      for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
+      mixState = { list: all.slice(0, 20) }; mixState.ans = mixState.list.map(() => null);
+    }
+    list = mixState.list; ans = mixState.ans;
+    $("#ofLinks").textContent = "Um sorteio novo de 20 questões oficiais a cada vez.";
+  } else {
+    const e = EXAMS.find(x => x.id === k);
+    list = e.q.map(q => ofToQ(q, e));
+    if (!p.exams[k] || p.exams[k].length !== list.length || fresh) p.exams[k] = list.map(() => null);
+    ans = p.exams[k];
+    $("#ofLinks").innerHTML = `<a href="${e.prova}" target="_blank" rel="noopener">Caderno original (PDF)</a> · <a href="${e.gabarito}" target="_blank" rel="noopener">Gabarito oficial (PDF)</a>`;
+  }
+  mountPlayer({ box: $("#ofPlayer"), pathBox: $("#ofPath"), list, ans, title: "Prova concluída", onAnswer: save,
+    again: () => { openExam(k, false, true); save(); $("#ofPath").scrollIntoView({ block: "start" }); }, againLabel: k === "mix" ? "Novo sorteio" : "Refazer esta prova" });
+  if (scroll) $("#editions").scrollIntoView({ block: "start" });
+}
+
+/* ===== áreas ===== */
+function renderAreas() {
+  $("#areaTabs").innerHTML = AREAS.map((a, i) => `<button type="button" role="tab" class="area-tab" data-area="${a}" aria-selected="${i === 0}"><b>${AREA_NAME[a]}</b><span>${CONTENT[a].d}</span></button>`).join("");
+  $("#areaPanels").innerHTML = AREAS.map((a, i) => {
+    const nOwn = OWN.filter(o => o.a === a).length, nOf = EXAMS.reduce((s, e) => s + e.q.filter(q => q.area === a).length, 0);
+    return `<div class="area-panel" data-area="${a}" ${i ? "hidden" : ""}><div><h3>O que estudar</h3><ul>${CONTENT[a].li.map(x => `<li>${x}</li>`).join("")}</ul><p class="tip"><b>Como estudar:</b> ${CONTENT[a].tip}</p></div>
+      <div><h3>Treinar ${AREA_NAME[a]}</h3><p class="tip">A trilha do dia usa ${nOwn + nOf} questões desta área, misturadas com as outras.</p><a class="btn go-trail" href="#trilha" style="background:var(--area);border-color:var(--area)">Ir para a trilha do dia</a></div></div>`;
+  }).join("");
+  $$(".area-tab").forEach(t => t.addEventListener("click", () => { $$(".area-tab").forEach(x => x.setAttribute("aria-selected", x === t)); $$(".area-panel").forEach(p => p.hidden = p.dataset.area !== t.dataset.area); }));
+  $$(".area-panel .go").forEach(b => b.addEventListener("click", () => { trailArea = b.dataset.area; startTrail(); $("#trilha").scrollIntoView({ block: "start" }); }));
+}
+
+/* ===== plano ===== */
+function renderPlan() {
+  const p = me(); const wk = p ? weekOf(p) : -1;
+  $("#planTable").innerHTML = `<table><thead><tr><th>Semana</th><th data-area="Português">Português</th><th data-area="Matemática">Matemática</th><th data-area="Ciências">Ciências</th><th data-area="Humanas">Humanas</th></tr></thead><tbody>${PLAN.map((w, i) => `<tr class="${i === wk ? "now" : ""}"><td>${i + 1}${i === wk ? " · agora" : ""}</td><td>${w.p}</td><td>${w.m}</td><td>${w.c}</td><td>${w.h}</td></tr>`).join("")}</tbody></table>`;
+}
+
+/* ===== família ===== */
+function report(p) {
+  const acc = accuracy(p.log);
+  const last7 = [...Array(7)].reduce((s, _, i) => { const x = new Date(); x.setDate(x.getDate() - i); return s + (p.days[dayKey(x)] || { q: 0 }).q; }, 0);
+  const PJ = projection(p);
+  const per = PJ.per.map(x => `${x.a}: ${x.hits === null ? "–" : x.hits} de ${x.inExam} previstos · ${x.acc === null ? "sem dados" : Math.round(x.acc * 100) + "% de acerto"} (${x.n} questões) · ${LVL[x.lvl]}`);
+  if (PJ.attn.length) per.push("Precisa de atenção: " + PJ.attn.map(x => `${x.t} (${x.a}, errou ${x.err} de ${x.n})`).join("; "));
+  return `Rumo à Etec · Relatório de ${p.name} (${new Date().toLocaleDateString("pt-BR")})\nSemana ${Math.min(8, weekOf(p) + 1)} de 8 · meta de ${p.goal} questões por dia\nÚltimos 7 dias: ${last7} questões · ${streakOf(p)} dias seguidos na meta\nTotal respondido: ${p.log.length} · projeção na prova: ${PJ.total === null ? "–" : PJ.total + "/50"}\n${per.join("\n")}`;
+}
+function renderKids() {
+  if (!DB.profiles.length) { $("#kids").innerHTML = `<p class="tip">Nenhum aluno cadastrado neste aparelho ainda.</p>`; return; }
+  $("#kids").innerHTML = DB.profiles.map(p => {
+    const acc = accuracy(p.log), PJ = projection(p); const today = (p.days[dayKey()] || { q: 0 }).q;
+    const last = Object.keys(p.days).sort().pop();
+    return `<div class="kid" data-id="${p.id}"><div class="kid-head"><h3><i class="avatar">${esc(p.name[0]?.toUpperCase() || "?")}</i>${esc(p.name)}</h3><span class="tip">${last ? "último estudo em " + last.split("-").reverse().join("/") : "ainda não estudou"}</span></div>
+      <div class="kid-stats"><div><b>${today}/${p.goal}</b>meta de hoje</div><div><b>${streakOf(p)}</b>dias seguidos</div><div><b>${Math.min(8, weekOf(p) + 1)}/8</b>semana</div><div><b>${p.log.length}</b>respondidas</div><div><b>${PJ.total === null ? "–" : PJ.total + "/50"}</b>projeção</div></div>
+      <div class="proj">${PJ.per.map(x => `<div class="proj-row" data-area="${x.a}"><span class="nm">${x.a}<span class="lvl ${x.lvl}">${LVL[x.lvl]}</span><br><small>${x.n} respondidas · ${x.acc === null ? "sem dados" : Math.round(x.acc * 100) + "% de acerto"}</small></span><span class="hits">${x.hits === null ? "–" : x.hits}/${x.inExam}</span><div class="bar"><i style="width:${x.hits === null ? 0 : Math.round(x.hits / x.inExam * 100)}%"></i></div></div>`).join("")}</div>
+      ${PJ.attn.length ? `<div><b>Precisa de atenção</b><ul class="attn" style="margin-top:6px">${PJ.attn.map(x => `<li data-area="${x.a}"><span>${esc(x.t)} <small class="tip">· ${x.a}</small></span><span>errou ${x.err} de ${x.n}</span></li>`).join("")}</ul></div>` : ""}
+      <div class="row"><button type="button" class="btn small copy">Copiar relatório</button><button type="button" class="btn ghost small del">Remover aluno</button></div><p class="tip msg"></p></div>`;
+  }).join("");
+  $$("#kids .kid").forEach(k => {
+    const p = DB.profiles.find(x => x.id === k.dataset.id);
+    const msg = k.querySelector(".msg");
+    k.querySelector(".copy").addEventListener("click", () => {
+      const txt = report(p);
+      const fallback = () => { msg.textContent = txt; };
+      try { navigator.clipboard.writeText(txt).then(() => { msg.textContent = "Relatório copiado. Cole no WhatsApp ou no e-mail."; }, fallback); } catch (e) { fallback(); }
+    });
+    const del = k.querySelector(".del"); let armed = false;
+    del.addEventListener("click", () => {
+      if (!armed) { armed = true; del.textContent = "Confirmar remoção"; msg.textContent = "Isso apaga o histórico deste aluno neste aparelho."; return; }
+      DB.profiles = DB.profiles.filter(x => x.id !== p.id); if (DB.current === p.id) DB.current = null; save(); renderKids(); if (!me()) openGate();
+    });
+  });
+}
+
+/* ===== identificação ===== */
+function openGate() {
+  $("#gate").hidden = false; put($("#gateSabi"));
+  $("#gateProfiles").innerHTML = DB.profiles.map(p => `<button type="button" class="profile" data-id="${p.id}"><i class="avatar">${esc(p.name[0]?.toUpperCase() || "?")}</i>${esc(p.name)}<small>${(p.days[dayKey()] || { q: 0 }).q}/${p.goal} hoje</small></button>`).join("");
+  $("#gateSep").hidden = !DB.profiles.length;
+  $$("#gateProfiles .profile").forEach(b => b.addEventListener("click", () => { DB.current = b.dataset.id; save(); closeGate(); const p = me(); speak(`Oi de novo, ${p.name}! Vamos continuar a trilha.`); }));
+  $("#gName").value = "";
+}
+function closeGate() { $("#gate").hidden = true; afterLogin(); }
+$("#gateForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const name = $("#gName").value.trim();
+  if (!name) { $("#gErr").hidden = false; $("#gName").focus(); return; }
+  $("#gErr").hidden = true;
+  newProfile(name, $("#gGoal").value, $("#gDate").value);
+  closeGate();
+  speak(`Oi, ${name}! Eu sou o Sabi. Vamos estudar juntos para a Etec.`);
+});
+$("#gateFamily").addEventListener("click", () => { $("#gate").hidden = true; renderKids(); $("#familia").scrollIntoView({ block: "start" }); });
+$("#whoBtn").addEventListener("click", openGate);
+function afterLogin() { renderPanel(); startTrail(); renderKids(); if (EXAMS.length) openExam(ofKey || EXAMS[0].id, false); }
+
+/* ===== início ===== */
+put($("#brandSabi")); renderVoice(); renderPanel();
+Promise.all([
+  fetch("dados/proprias.json").then(r => r.json()),
+  fetch("oficiais/banco.json").then(r => r.json()),
+  fetch("oficiais/explicacoes.json").then(r => r.ok ? r.json() : {}).catch(() => ({})),
+  fetch("oficiais/textos.json").then(r => r.ok ? r.json() : {}).catch(() => ({}))
+]).then(([own, ex, xp, tx]) => {
+  OWN = own; EXAMS = ex; OFX = xp; TXT = tx;
+  OWN.forEach(o => { const q = ownToQ(o); QMAP[q.id] = q; });
+  allOf().forEach(q => { QMAP[q.id] = q; });
+  $("#ofTotal").textContent = EXAMS.reduce((s, e) => s + e.q.length, 0);
+  renderAreas(); renderEditions(); renderKids();
+  if (me()) afterLogin(); else openGate();
+}).catch(() => { $("#player").innerHTML = `<p class="note">Não foi possível carregar as questões agora. Recarregue a página.</p>`; });
+</script>
