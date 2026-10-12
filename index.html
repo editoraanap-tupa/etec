@@ -383,10 +383,10 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
 
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="#inicio"><span id="brandSabi" style="width:30px;display:block"></span>Rumo à Etec</a>
+    <a class="brand" href="#trilha"><span id="brandSabi" style="width:30px;display:block"></span>Rumo à Etec</a>
     <nav class="links" aria-label="Seções">
-      <a href="#inicio">Painel</a>
       <a href="#trilha">Trilha</a>
+      <a href="#inicio">Painel</a>
       <a href="#plano">Plano</a>
       <a href="#familia">Família</a>
     </nav>
@@ -401,7 +401,20 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
 
 <main class="wrap">
 
-  <section class="block" id="inicio" style="padding-top:0">
+  <section class="block" id="trilha" style="padding-top:8px">
+    <div class="section-head">
+      <p class="eyebrow">Plano de estudo diário</p>
+      <h2>Trilha do dia</h2>
+      <p>Responda e veja na hora se acertou. Se errar, o Sabi explica.</p>
+    </div>
+    <div class="trail-top">
+      <div class="trail-opts" id="trailAreas" role="group" aria-label="Área da trilha" hidden></div>
+      <div class="path" id="path"></div>
+    </div>
+    <div id="player"></div>
+  </section>
+
+  <section class="block" id="inicio">
     <div class="hello">
       <div id="helloSabi"></div>
       <div>
@@ -416,10 +429,13 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
       <div class="stat" style="--c: var(--ok)"><span class="eyebrow">Projeção na prova</span><b id="stProj">–</b><span class="sub" id="stProjMsg">acertos previstos em 50 questões</span></div>
       <div class="stat" style="--c: var(--por)"><span class="eyebrow">Até a prova</span><b id="stDays">–</b><span class="sub" id="stDaysMsg">informe a data da prova</span></div>
     </div>
-    <div class="start-cta">
+    <div class="start-cta" hidden>
       <div><h3 id="ctaTitle">Trilha de hoje</h3><p>Questões misturadas de todas as áreas, uma de cada vez.</p></div>
       <a class="btn sun" href="#trilha" id="ctaBtn">Começar a trilha</a>
     </div>
+  </section>
+
+  <section class="block" id="evolucao" style="display:grid;gap:16px">
     <div class="card" style="display:grid;gap:12px">
       <div class="row" style="justify-content:space-between"><h3>Jornada de 8 semanas</h3><span class="tip" id="jrnInfo"></span></div>
       <div class="journey"><ol id="journey"></ol></div>
@@ -428,19 +444,6 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
       <div class="card"><h3>Últimos 14 dias</h3><div class="chart" id="chart"></div><div class="days" id="chartDays"></div><p class="tip" style="margin-top:8px">Barras verdes: dia com meta cumprida. Linha tracejada: sua meta.</p></div>
       <div class="card" style="display:grid;gap:12px;align-content:start"><h3>Projeção de acertos por área</h3><p class="tip" style="margin-top:-6px">Quantas questões de cada área costumam cair nas 50 da prova, e quantas você acertaria hoje.</p><div class="proj" id="areaBars"></div><ul class="attn" id="attn" hidden></ul><p class="tip" id="advice"></p></div>
     </div>
-  </section>
-
-  <section class="block" id="trilha">
-    <div class="section-head">
-      <p class="eyebrow">Plano de estudo diário</p>
-      <h2>Trilha do dia</h2>
-      <p>Cada bolinha é uma etapa. Responda, veja na hora se acertou e siga para a próxima. Se errar, o Sabi explica o porquê. As questões vêm misturadas, Português, Matemática, Ciências e Humanas, uma área diferente a cada etapa, e a trilha traz mais questões do que você mais erra.</p>
-    </div>
-    <div class="trail-top">
-      <div class="trail-opts" id="trailAreas" role="group" aria-label="Área da trilha" hidden></div>
-      <div class="path" id="path"></div>
-    </div>
-    <div id="player"></div>
   </section>
 
   <section class="block" id="provas" hidden>
