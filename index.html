@@ -1,4 +1,9 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3529d6">
 <title>Rumo à Etec</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -340,7 +345,21 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
 .chip { font-weight: 600; }
 .ctx { background: var(--area-wash, var(--brand-wash)); color: var(--ink); }
 .player { border-top-width: 8px; }
+@media (max-width: 640px) {
+  html { font-size: 18px; }
+  body { font-size: 18px; padding-inline: 12px; }
+  .stem { font-size: 1.12rem; line-height: 1.55; }
+  .ctx { font-size: 1.02rem; }
+  .opt { font-size: 1.06rem; padding: 12px 12px; grid-template-columns: 34px minmax(0,1fr); }
+  .opt > * { min-width: 0; overflow-wrap: anywhere; }
+  .bubble { font-size: 1.02rem; }
+  .tip, .stat .sub { font-size: .95rem; }
+  .qtable table { font-size: .95rem; }
+  .qfig img, .qfig { max-width: 100%; }
+}
 </style>
+</head>
+<body>
 
 <template id="sabiTpl">
   <svg class="sabi" viewBox="0 0 120 132" aria-hidden="true">
@@ -368,7 +387,6 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
     <nav class="links" aria-label="Seções">
       <a href="#inicio">Painel</a>
       <a href="#trilha">Trilha</a>
-      <a href="#areas">Áreas</a>
       <a href="#plano">Plano</a>
       <a href="#familia">Família</a>
     </nav>
@@ -437,7 +455,7 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
     <div id="ofPlayer"></div>
   </section>
 
-  <section class="block" id="areas">
+  <section class="block" id="areas" hidden>
     <div class="section-head">
       <p class="eyebrow">Estude por área do conhecimento</p>
       <h2>Português, Matemática, Ciências e Humanas</h2>
@@ -954,3 +972,5 @@ Promise.all([
   if (me()) afterLogin(); else openGate();
 }).catch(() => { $("#player").innerHTML = `<p class="note">Não foi possível carregar as questões agora. Recarregue a página.</p>`; });
 </script>
+</body>
+</html>
