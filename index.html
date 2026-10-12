@@ -357,6 +357,16 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
   .qtable table { font-size: .95rem; }
   .qfig img, .qfig { max-width: 100%; }
 }
+.voice-pop { position: fixed; z-index: 40; top: calc(env(safe-area-inset-top, 0px) + 64px); right: max(12px, calc((100vw - 1100px) / 2)); width: min(340px, calc(100vw - 24px)); background: var(--sheet); color: var(--ink); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow, 0 12px 40px rgba(0,0,0,.2)); padding: 16px; display: grid; gap: 14px; }
+.vp-head { display: flex; justify-content: space-between; align-items: center; font-family: var(--f-display); font-size: 1.1rem; }
+.vp-x { border: 0; background: none; color: var(--ink-soft); font-size: 1.6rem; line-height: 1; cursor: pointer; padding: 0 4px; }
+.vp-on { display: flex; gap: 10px; align-items: center; font-weight: 600; cursor: pointer; }
+.vp-on input { width: 22px; height: 22px; accent-color: var(--brand); }
+.vp-grp { display: grid; gap: 6px; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg button { flex: 1 1 0; min-width: 0; border: 2px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 8px 10px; font-family: var(--f-display); font-weight: 700; font-size: .92rem; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+#vPick { font: inherit; font-size: .95rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; width: 100%; min-width: 0; }
 </style>
 </head>
 <body>
@@ -391,13 +401,22 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
       <a href="#familia">Família</a>
     </nav>
     <div class="who">
-      <button type="button" class="icon-btn" id="voiceBtn" aria-pressed="true" title="Ligar ou desligar a voz do Sabi" aria-label="Voz do Sabi">
+      <button type="button" class="icon-btn" id="voiceBtn" aria-pressed="true" title="Voz do Sabi: ligar, tipo e velocidade" aria-label="Voz do Sabi">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path class="wave" d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
       </button>
       <button type="button" class="who-btn" id="whoBtn" title="Trocar de aluno"><i class="avatar" id="whoAvatar">?</i><span id="whoName">Entrar</span></button>
     </div>
   </div>
 </header>
+<div class="voice-pop" id="voicePop" hidden role="dialog" aria-label="Voz do Sabi">
+  <div class="vp-head"><b>Voz do Sabi</b><button type="button" class="vp-x" id="vClose" aria-label="Fechar">×</button></div>
+  <label class="vp-on"><input type="checkbox" id="vOn"> Ler as respostas em voz alta</label>
+  <div class="vp-grp"><span class="eyebrow">Tipo de voz</span><div class="seg" id="vGender"><button type="button" data-v="f">Feminina</button><button type="button" data-v="m">Masculina</button></div></div>
+  <div class="vp-grp"><span class="eyebrow">Velocidade</span><div class="seg" id="vRate"><button type="button" data-v="0.8">Devagar</button><button type="button" data-v="0.95">Normal</button><button type="button" data-v="1.15">Rápida</button></div></div>
+  <div class="vp-grp"><span class="eyebrow">Voz do aparelho</span><select id="vPick"></select></div>
+  <button type="button" class="btn small" id="vTest">Ouvir um exemplo</button>
+  <p class="tip" id="vInfo"></p>
+</div>
 
 <main class="wrap">
 
@@ -582,16 +601,81 @@ const CONTENT = {
 };
 
 /* ===== voz ===== */
-let ptVoice = null;
-function pickVoice() { try { const vs = speechSynthesis.getVoices(); ptVoice = vs.find(v => /pt[-_]BR/i.test(v.lang)) || vs.find(v => /^pt/i.test(v.lang)) || null; } catch (e) {} }
+/* Os aparelhos trazem vozes diferentes; escolhemos pelo nome a voz feminina ou masculina em português.
+   Se o aparelho não tiver a voz pedida, mudamos o tom (pitch) da voz disponível. */
+const V_FEM = ["luciana", "francisca", "google português", "maria", "thalita", "fernanda", "vitória", "vitoria", "leila", "yara", "raquel", "manuela", "brenda", "giovanna", "elza", "leticia", "letícia", "joana", "catarina", "flo", "sandy", "shelley"];
+const V_MAS = ["felipe", "daniel", "antonio", "antônio", "donato", "fabio", "fábio", "humberto", "julio", "júlio", "nicolau", "valerio", "valério", "duarte", "joaquim", "reed", "eddy", "rocko"];
+let ptVoices = [], ptVoice = null, ptMatch = true;
+if (!DB.vgender) DB.vgender = "f";
+if (!DB.vrate) DB.vrate = 0.95;
+function voiceKind(v) {
+  const n = v.name.toLowerCase();
+  if (/female|feminin|mulher/.test(n)) return "f";
+  if (/\bmale\b|masculin|homem/.test(n)) return "m";
+  if (V_MAS.some(k => n.includes(k))) return "m";
+  if (V_FEM.some(k => n.includes(k))) return "f";
+  return "";
+}
+function voiceRank(v, g) {
+  const n = v.name.toLowerCase(), list = g === "m" ? V_MAS : V_FEM;
+  const i = list.findIndex(k => n.includes(k));
+  return (/pt[-_]br/i.test(v.lang) ? 0 : 100) + (i < 0 ? 50 : i);
+}
+function pickVoice() {
+  try {
+    const vs = speechSynthesis.getVoices();
+    ptVoices = vs.filter(v => /^pt/i.test(v.lang)).sort((a, b) => (/pt[-_]br/i.test(b.lang) - /pt[-_]br/i.test(a.lang)) || a.name.localeCompare(b.name));
+    const chosen = DB.vname && ptVoices.find(v => v.name === DB.vname);
+    if (chosen) { ptVoice = chosen; ptMatch = voiceKind(chosen) !== "" ? voiceKind(chosen) === DB.vgender : true; }
+    else {
+      const same = ptVoices.filter(v => voiceKind(v) === DB.vgender).sort((a, b) => voiceRank(a, DB.vgender) - voiceRank(b, DB.vgender));
+      ptMatch = same.length > 0;
+      ptVoice = same[0] || ptVoices.filter(v => voiceKind(v) === "").sort((a, b) => voiceRank(a, "f") - voiceRank(b, "f"))[0] || ptVoices[0] || null;
+    }
+  } catch (e) {}
+  if (!$("#voicePop").hidden) renderVoicePop();
+}
 try { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {}
-function speak(text) {
-  if (!DB.voice) return;
-  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "pt-BR"; if (ptVoice) u.voice = ptVoice; u.rate = 1.02; u.pitch = 1.1; speechSynthesis.speak(u); } catch (e) {}
+function voicePitch() {
+  if (ptMatch) return DB.vgender === "m" ? 0.95 : 1.05;
+  const k = ptVoice ? voiceKind(ptVoice) : "";
+  if (DB.vgender === "m") return k === "m" ? 0.95 : 0.6;
+  return k === "m" ? 1.4 : 1.1;
+}
+function speak(text, force) {
+  if (!DB.voice && !force) return;
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "pt-BR"; if (ptVoice) { u.voice = ptVoice; u.lang = ptVoice.lang; } u.rate = DB.vrate; u.pitch = voicePitch(); speechSynthesis.speak(u); } catch (e) {}
 }
 function hush() { try { speechSynthesis.cancel(); } catch (e) {} }
 function renderVoice() { $("#voiceBtn").setAttribute("aria-pressed", DB.voice); $("#voiceBtn .wave").style.display = DB.voice ? "" : "none"; }
-$("#voiceBtn").addEventListener("click", () => { DB.voice = !DB.voice; save(); renderVoice(); if (DB.voice) speak("Voz ligada."); else hush(); });
+function renderVoicePop() {
+  $("#vOn").checked = !!DB.voice;
+  $$("#vGender button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === DB.vgender));
+  $$("#vRate button").forEach(b => b.setAttribute("aria-pressed", Number(b.dataset.v) === DB.vrate));
+  const sel = $("#vPick");
+  sel.innerHTML = `<option value="">Automática (${DB.vgender === "m" ? "masculina" : "feminina"})</option>` + ptVoices.map(v => `<option value="${esc(v.name)}">${esc(v.name.replace(/^(Microsoft|Google)\s+/i, "$1 "))}</option>`).join("");
+  sel.value = DB.vname && ptVoices.some(v => v.name === DB.vname) ? DB.vname : "";
+  let info;
+  if (!("speechSynthesis" in window)) info = "Este navegador não tem leitura em voz alta.";
+  else if (!ptVoices.length) info = "Este aparelho não tem voz em português instalada. Ele vai usar a voz padrão.";
+  else if (!ptMatch && !DB.vname) info = `Este aparelho não tem voz ${DB.vgender === "m" ? "masculina" : "feminina"} em português, então o Sabi muda o tom da voz ${ptVoice ? esc(ptVoice.name) : ""} para imitar.`;
+  else info = `Usando a voz ${ptVoice ? esc(ptVoice.name) : "padrão"}.`;
+  $("#vInfo").innerHTML = info;
+}
+function openVoicePop(open) {
+  $("#voicePop").hidden = !open;
+  if (open) { pickVoice(); renderVoicePop(); }
+}
+function voiceChanged() { save(); renderVoice(); pickVoice(); renderVoicePop(); speak(DB.vgender === "m" ? "Oi! Esta é a voz masculina do Sabi." : "Oi! Esta é a voz feminina do Sabi.", true); }
+$("#voiceBtn").addEventListener("click", e => { e.stopPropagation(); openVoicePop($("#voicePop").hidden); });
+$("#vClose").addEventListener("click", () => openVoicePop(false));
+$("#voicePop").addEventListener("click", e => e.stopPropagation());
+document.addEventListener("click", () => { if (!$("#voicePop").hidden) openVoicePop(false); });
+$("#vOn").addEventListener("change", e => { DB.voice = e.target.checked; save(); renderVoice(); if (DB.voice) speak("Voz ligada."); else hush(); });
+$$("#vGender button").forEach(b => b.addEventListener("click", () => { DB.vgender = b.dataset.v; DB.vname = ""; voiceChanged(); }));
+$$("#vRate button").forEach(b => b.addEventListener("click", () => { DB.vrate = Number(b.dataset.v); voiceChanged(); }));
+$("#vPick").addEventListener("change", e => { DB.vname = e.target.value; const v = ptVoices.find(x => x.name === DB.vname); if (v && voiceKind(v)) DB.vgender = voiceKind(v); voiceChanged(); });
+$("#vTest").addEventListener("click", () => speak("Muito bem! Você acertou. A alternativa certa é a letra C.", true));
 
 /* ===== registro e métricas ===== */
 function record(q, ok) {
