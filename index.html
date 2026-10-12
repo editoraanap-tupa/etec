@@ -304,11 +304,14 @@ details.orig .qimg { margin-top: 8px; }
 .pg-proj { stroke-dasharray: 1 6; stroke-width: 3; }
 .pg-dot { stroke: var(--sheet); stroke-width: 2; } .pg-dot.pg-q { fill: var(--brand); } .pg-dot.pg-a { fill: var(--pg-a); } .pg-dot.pg-e { fill: var(--pg-e); }
 .pg-lab { font-family: var(--f-display); font-weight: 700; font-size: 12px; fill: var(--ink); }
-.pg-cross { stroke: var(--ink); stroke-width: 1; opacity: .4; }
+.pg-cross { fill: var(--ink); opacity: .08; }
+.pg-b-a { fill: var(--pg-a); } .pg-b-e { fill: var(--pg-e); } .pg-b-p { fill: var(--line); opacity: .7; }
+.pg-today { stroke: var(--ink); stroke-width: 2; }
 .pg-tip { position: absolute; top: 0; font-size: .8rem !important; line-height: 1.35; background: var(--sheet); border: 1px solid var(--line); border-radius: 10px; padding: 6px 9px; display: grid; gap: 1px; box-shadow: 0 6px 20px rgba(0,0,0,.15); pointer-events: none; white-space: nowrap; }
 .pg-tip span { display: flex; align-items: center; gap: 6px; color: var(--ink); }
 .pg-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: .82rem; color: var(--ink-soft); }
 .pg-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.sq { display: inline-block; width: 11px; height: 11px; border-radius: 3px; flex: none; } .sq.a { background: var(--pg-a); } .sq.e { background: var(--pg-e); } .sq.p { background: var(--line); }
 .sw { display: inline-block; width: 16px; height: 0; border-top: 3px solid; flex: none; }
 .sw.m { border-color: var(--ink-soft); border-top-style: dashed; } .sw.q { border-color: var(--brand); } .sw.a { border-color: var(--pg-a); } .sw.e { border-color: var(--pg-e); } .sw.p { border-color: var(--ink-soft); border-top-style: dotted; }
 .pg-areas { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .9rem; color: var(--ink-soft); }
@@ -1068,44 +1071,51 @@ function progressSeries(p) {
   return { pts, ti, n, left, avgQ, avgA, avgE, peak: Math.max(...pts.slice(0, ti + 1).map(x => x.q)) };
 }
 function progressChart(p, Wp) {
-  const S = progressSeries(p), W = Wp || 600, H = W < 450 ? 230 : 250, L = 40, R = W < 450 ? 82 : 92, T = 14, B = 26;
+  /* Uma barra por dia: verde = certas, vermelho = erros (altura total = questões feitas). Linha tracejada = meta diária.
+     Depois de hoje, barras claras com a previsão pela média dos últimos 7 dias. */
+  const S = progressSeries(p), W = Wp || 600, H = W < 450 ? 220 : 240, L = 30, R = W < 450 ? 56 : 64, T = 14, B = 26;
   const ymax = Math.max(p.goal, S.peak, 10) * 1.12, xw = W - L - R, yh = H - T - B;
-  const X = i => L + (S.n === 1 ? 0 : i / (S.n - 1) * xw), Y = v => T + yh - v / ymax * yh;
-  const line = (key, from, to) => { let d = ""; for (let i = from; i <= to; i++) { const v = S.pts[i][key]; if (v == null) continue; d += (d ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1); } return d; };
+  const slot = xw / S.n, bw = Math.max(2, slot - (slot > 5 ? 2 : 1)), r = Math.min(3, bw / 2);
+  const X = i => L + i * slot + (slot - bw) / 2, Y = v => T + yh - v / ymax * yh;
   const step = ymax > 80 ? 20 : 10;
   let grid = ""; for (let v = 0; v <= ymax; v += step) grid += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" class="pg-grid"/><text x="${L - 6}" y="${Y(v) + 4}" class="pg-ax" text-anchor="end">${v}</text>`;
   const ticks = (W < 450 ? [0, Math.round((S.n - 1) / 2), S.n - 1] : [0, Math.round((S.n - 1) / 3), Math.round(2 * (S.n - 1) / 3), S.n - 1]).filter((v, i, a) => a.indexOf(v) === i);
-  const xt = ticks.map(i => `<text x="${X(i)}" y="${H - 8}" class="pg-ax" text-anchor="${i === 0 ? "start" : i === S.n - 1 ? "end" : "middle"}">${i === S.n - 1 ? "prova " : ""}${br(S.pts[i].k)}</text>`).join("");
-  const last = S.n - 1, lab = (y, txt, cls) => `<text x="${W - R + 8}" y="${y}" class="pg-lab ${cls}">${txt}</text>`;
-  // rótulos finais sem sobreposição
-  let ys = [[Y(p.goal), `Meta ${p.goal}`, "m"], [Y(S.avgQ), `${S.avgQ} feitas`, "q"], [Y(S.avgA), `${S.avgA} certas`, "a"], [Y(S.avgE), `${S.avgE} erros`, "e"]].sort((a, b) => a[0] - b[0]);
-  for (let i = 1; i < ys.length; i++) if (ys[i][0] - ys[i - 1][0] < 15) ys[i][0] = ys[i - 1][0] + 15;
+  const cx = i => X(i) + bw / 2;
+  const xt = ticks.map(i => `<text x="${cx(i)}" y="${H - 8}" class="pg-ax" text-anchor="${i === 0 ? "start" : i === S.n - 1 ? "end" : "middle"}">${i === S.n - 1 ? "prova " : ""}${br(S.pts[i].k)}</text>`).join("");
+  // barra com topo arredondado, base reta
+  const bar = (x, y0, h, cls, top) => { if (h <= 0) return ""; const y = y0 - h, rr = top ? Math.min(r, h) : 0;
+    return `<path class="${cls}" d="M${x} ${y0}V${y + rr}${rr ? `Q${x} ${y} ${x + rr} ${y}H${x + bw - rr}Q${x + bw} ${y} ${x + bw} ${y + rr}` : `H${x + bw}`}V${y0}Z"/>`; };
+  let bars = "";
+  S.pts.forEach((pt, i) => {
+    const x = X(i), base = Y(0);
+    if (i <= S.ti) {
+      const ha = pt.a / ymax * yh, he = pt.e / ymax * yh, gap = ha > 0 && he > 0 ? 1.5 : 0;
+      bars += bar(x, base, ha, "pg-b-a", he <= 0) + bar(x, base - ha - gap, Math.max(0, he - (gap ? 0 : 0)), "pg-b-e", true);
+    } else bars += bar(x, base, pt.pq / ymax * yh, "pg-b-p", true);
+  });
+  const lab = (y, txt) => `<text x="${W - R + 6}" y="${y + 4}" class="pg-lab">${txt}</text>`;
   return `<div class="pg"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Questões por dia de ${esc(p.name)} até a prova: meta de ${p.goal} por dia; média recente de ${S.avgQ} feitas, ${S.avgA} certas e ${S.avgE} erros.">
-    ${grid}${xt}
-    <line x1="${X(S.ti)}" x2="${X(S.ti)}" y1="${T}" y2="${T + yh}" class="pg-today"/><text x="${X(S.ti) + 4}" y="${T + 10}" class="pg-ax">hoje</text>
-    <path d="${line("meta", 0, last)}" class="pg-l pg-m"/>
-    <path d="${line("pq", S.ti, last)}" class="pg-l pg-q pg-proj"/><path d="${line("pa", S.ti, last)}" class="pg-l pg-a pg-proj"/>
-    <path d="${line("pe", S.ti, last)}" class="pg-l pg-e pg-proj"/>
-    <path d="${line("q", 0, S.ti)}" class="pg-l pg-q"/><path d="${line("a", 0, S.ti)}" class="pg-l pg-a"/><path d="${line("e", 0, S.ti)}" class="pg-l pg-e"/>
-    <circle cx="${X(S.ti)}" cy="${Y(S.pts[S.ti].q)}" r="4.5" class="pg-dot pg-q"/><circle cx="${X(S.ti)}" cy="${Y(S.pts[S.ti].a)}" r="4.5" class="pg-dot pg-a"/><circle cx="${X(S.ti)}" cy="${Y(S.pts[S.ti].e)}" r="4.5" class="pg-dot pg-e"/>
-    ${ys.map(([y, t, c]) => lab(y + 4, t, c)).join("")}
-    <g class="pg-hover" visibility="hidden"><line class="pg-cross" y1="${T}" y2="${T + yh}"/></g>
+    ${grid}${xt}${bars}
+    <line x1="${L}" x2="${W - R}" y1="${Y(p.goal)}" y2="${Y(p.goal)}" class="pg-l pg-m"/>
+    ${lab(Y(p.goal), `Meta ${p.goal}`)}${S.n - 1 > S.ti && Math.abs(Y(S.avgQ) - Y(p.goal)) > 14 ? lab(Y(S.avgQ), `≈${S.avgQ}`) : ""}
+    <line x1="${cx(S.ti)}" x2="${cx(S.ti)}" y1="${Y(0) + 2}" y2="${Y(0) + 7}" class="pg-today"/>
+    <g class="pg-hover" visibility="hidden"><rect class="pg-cross" y="${T}" height="${yh}" width="${slot}"/></g>
     <rect x="${L}" y="${T}" width="${xw}" height="${yh}" fill="transparent" class="pg-hit"/>
   </svg><div class="pg-tip" hidden></div></div>`;
 }
 function wireProgressChart(box, p) {
   const S = progressSeries(p), svg = box.querySelector("svg"), tip = box.querySelector(".pg-tip"), hov = svg.querySelector(".pg-hover"), cross = svg.querySelector(".pg-cross");
-  const W = svg.viewBox.baseVal.width, L = 40, R = W < 450 ? 82 : 92, xw = W - L - R;
+  const W = svg.viewBox.baseVal.width, L = 30, R = W < 450 ? 56 : 64, xw = W - L - R, slot = xw / S.n;
   const show = ev => {
     const r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width * W;
-    const i = Math.max(0, Math.min(S.n - 1, Math.round((x - L) / xw * (S.n - 1)))), pt = S.pts[i], cx = L + (S.n === 1 ? 0 : i / (S.n - 1) * xw);
-    cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); hov.setAttribute("visibility", "visible");
+    const i = Math.max(0, Math.min(S.n - 1, Math.floor((x - L) / slot))), pt = S.pts[i], cx = L + (i + .5) * slot;
+    cross.setAttribute("x", L + i * slot); hov.setAttribute("visibility", "visible");
     const fut = i > S.ti;
     tip.innerHTML = `<b>${br(pt.k)}${i === S.ti ? " · hoje" : ""}${i === S.n - 1 ? " · prova" : ""}${fut ? " · previsão" : ""}</b>
       <span><i class="sw m"></i>Meta do dia: ${pt.meta}</span>
-      <span><i class="sw q"></i>${fut ? "Feitas previstas" : "Feitas"}: ${fut ? pt.pq : pt.q}</span>
-      <span><i class="sw a"></i>${fut ? "Certas previstas" : "Certas"}: ${fut ? pt.pa : pt.a}</span>
-      <span><i class="sw e"></i>${fut ? "Erros previstos" : "Erros"}: ${fut ? pt.pe : pt.e}</span>`;
+      <span>${fut ? "Feitas previstas" : "Feitas"}: <b>${fut ? pt.pq : pt.q}</b></span>
+      <span><i class="sq a"></i>${fut ? "Certas previstas" : "Certas"}: ${fut ? pt.pa : pt.a}</span>
+      <span><i class="sq e"></i>${fut ? "Erros previstos" : "Erros"}: ${fut ? pt.pe : pt.e}</span>`;
     tip.hidden = false;
     const bx = box.getBoundingClientRect(), px = cx / W * r.width + (r.left - bx.left);
     tip.style.left = Math.max(0, Math.min(bx.width - tip.offsetWidth, px - tip.offsetWidth / 2)) + "px";
@@ -1142,10 +1152,10 @@ function renderKids() {
     const last = Object.keys(p.days).sort().pop();
     return `<div class="kid" data-id="${p.id}"><div class="kid-head"><h3><i class="avatar">${esc(p.name[0]?.toUpperCase() || "?")}</i>${esc(p.name)}</h3><span class="tip">${last ? "último estudo em " + last.split("-").reverse().join("/") : "ainda não estudou"}</span></div>
       <div class="kid-stats"><div><b>${today}/${p.goal}</b>meta de hoje</div><div><b>${streakOf(p)}</b>dias seguidos</div><div><b>${Math.min(8, weekOf(p) + 1)}/8</b>semana</div><div><b>${p.log.length}</b>respondidas</div><div><b>${PJ.total === null ? "–" : PJ.total + "/50"}</b>projeção</div></div>
-      <div class="pg-wrap"><div class="row" style="justify-content:space-between;align-items:baseline"><b>Questões por dia até a prova</b><span class="pg-legend"><span><i class="sw m"></i>Meta</span><span><i class="sw q"></i>Feitas</span><span><i class="sw a"></i>Certas</span><span><i class="sw e"></i>Erros</span><span><i class="sw p"></i>Previsão (média)</span></span></div>
+      <div class="pg-wrap"><div class="row" style="justify-content:space-between;align-items:baseline"><b>Questões por dia até a prova</b><span class="pg-legend"><span><i class="sw m"></i>Meta do dia</span><span><i class="sq a"></i>Certas</span><span><i class="sq e"></i>Erros</span><span><i class="sq p"></i>Previsão (média)</span></span></div>
       ${progressChart(p, Math.round(Math.min(600, Math.max(300, ($("#kids").clientWidth || 600) - 34))))}<p class="tip">${progressSummary(p)}</p></div>
       <p class="tip" style="margin-bottom:-4px">Hoje, nas ${p.goal} questões da meta:</p>
-      <div class="pg-areas">${todayByArea(p).map(x => `<span data-area="${x.a}"><b>${x.a}</b> ${x.plan} questões · <span class="ok-t">${x.ok} certas</span> · <span class="bad-t">${x.bad} erros</span></span>`).join("")}</div>
+      <div class="pg-areas">${todayByArea(p).map(x => `<span data-area="${x.a}"><b>${x.a}</b> ${x.plan} ${x.plan === 1 ? "questão" : "questões"} · <span class="ok-t">${x.ok} ${x.ok === 1 ? "certa" : "certas"}</span> · <span class="bad-t">${x.bad} ${x.bad === 1 ? "erro" : "erros"}</span></span>`).join("")}</div>
       <div class="row"><button type="button" class="btn small copy">Copiar relatório</button><button type="button" class="btn ghost small del">Remover aluno</button></div><p class="tip msg"></p></div>`;
   }).join("");
   $$("#kids .kid").forEach(k => {
