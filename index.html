@@ -7,24 +7,26 @@
 /* Layout: aplicativo de estudo em uma coluna — painel de evolução no topo, trilha de etapas em linha reta, uma questão por vez com o mascote Sabi corrigindo na hora.
    Cada área do conhecimento tem a sua cor, usada nos nós da trilha, nas etiquetas e nos gráficos. */
 :root {
-  --bg: #f3f6ff;
+  --bg: #eef1ff;
   --sheet: #ffffff;
-  --ink: #17203b;
-  --ink-soft: #4f5a78;
-  --line: #d8def0;
-  --brand: #3b3fd8;
-  --brand-wash: #e7e8ff;
-  --sun: #ffb020;
-  --sun-wash: #fff3d6;
-  --ok: #16a34a;
-  --ok-wash: #dcfce7;
-  --bad: #dc2626;
-  --bad-wash: #fee2e2;
-  --por: #8b3ff2; --por-wash: #f1e8ff;
-  --mat: #2563eb; --mat-wash: #e3ecff;
-  --cie: #0d9b6c; --cie-wash: #dcf7ec;
-  --hum: #ea6a0c; --hum-wash: #ffeedf;
-  --ill-ink: #17203b; --ill-a: #3b3fd8; --ill-b: #ffb020; --ill-c: #eef1ff;
+  --ink: #0f1430;
+  --ink-soft: #3c4566;
+  --line: #c7cfea;
+  --brand: #3529d6;
+  --brand-2: #7b2ff2;
+  --brand-wash: #e3e1ff;
+  --sun: #ffa800;
+  --sun-wash: #fff0c7;
+  --ok: #0f9d47;
+  --ok-wash: #d3f8e0;
+  --bad: #e0262b;
+  --bad-wash: #ffe0e0;
+  --por: #7a2be6; --por-wash: #ece0ff;
+  --mat: #1a56f0; --mat-wash: #dde7ff;
+  --cie: #058a5c; --cie-wash: #d0f5e5;
+  --hum: #e05a00; --hum-wash: #ffe6d1;
+  --shadow: 0 10px 28px -16px rgba(40, 30, 140, .45);
+  --ill-ink: #0f1430; --ill-a: #3529d6; --ill-b: #ffa800; --ill-c: #eceaff;
   --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --f-body: "Literata", Georgia, "Times New Roman", serif;
   --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -32,22 +34,24 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0e1222; --sheet: #171d34; --ink: #e8ebf7; --ink-soft: #a9b1cc; --line: #2b3456;
-    --brand: #8f93ff; --brand-wash: #23284f; --sun: #ffc24d; --sun-wash: #3a2f12;
-    --ok: #4ade80; --ok-wash: #12341f; --bad: #f87171; --bad-wash: #3d1a1d;
-    --por: #b388ff; --por-wash: #2c2047; --mat: #7aa2ff; --mat-wash: #1b2a52;
-    --cie: #3ed6a0; --cie-wash: #12352a; --hum: #ff9c57; --hum-wash: #3b2414;
-    --ill-ink: #e8ebf7; --ill-a: #8f93ff; --ill-b: #ffc24d; --ill-c: #23284f;
+    --bg: #090c1a; --sheet: #161c36; --ink: #f4f6ff; --ink-soft: #c3c9e4; --line: #36406c;
+    --brand: #a3a6ff; --brand-2: #c49bff; --brand-wash: #262b5c; --sun: #ffc93d; --sun-wash: #3d3010;
+    --ok: #4be38a; --ok-wash: #0f3a22; --bad: #ff7b7b; --bad-wash: #451a1e;
+    --por: #c39bff; --por-wash: #301f55; --mat: #85aaff; --mat-wash: #192c5e;
+    --cie: #45e0aa; --cie-wash: #0f3b2c; --hum: #ffa363; --hum-wash: #432510;
+    --shadow: 0 10px 28px -14px rgba(0, 0, 0, .7);
+    --ill-ink: #f4f6ff; --ill-a: #a3a6ff; --ill-b: #ffc93d; --ill-c: #262b5c;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0e1222; --sheet: #171d34; --ink: #e8ebf7; --ink-soft: #a9b1cc; --line: #2b3456;
-  --brand: #8f93ff; --brand-wash: #23284f; --sun: #ffc24d; --sun-wash: #3a2f12;
-  --ok: #4ade80; --ok-wash: #12341f; --bad: #f87171; --bad-wash: #3d1a1d;
-  --por: #b388ff; --por-wash: #2c2047; --mat: #7aa2ff; --mat-wash: #1b2a52;
-  --cie: #3ed6a0; --cie-wash: #12352a; --hum: #ff9c57; --hum-wash: #3b2414;
-  --ill-ink: #e8ebf7; --ill-a: #8f93ff; --ill-b: #ffc24d; --ill-c: #23284f;
+  --bg: #090c1a; --sheet: #161c36; --ink: #f4f6ff; --ink-soft: #c3c9e4; --line: #36406c;
+  --brand: #a3a6ff; --brand-2: #c49bff; --brand-wash: #262b5c; --sun: #ffc93d; --sun-wash: #3d3010;
+  --ok: #4be38a; --ok-wash: #0f3a22; --bad: #ff7b7b; --bad-wash: #451a1e;
+  --por: #c39bff; --por-wash: #301f55; --mat: #85aaff; --mat-wash: #192c5e;
+  --cie: #45e0aa; --cie-wash: #0f3b2c; --hum: #ffa363; --hum-wash: #432510;
+  --shadow: 0 10px 28px -14px rgba(0, 0, 0, .7);
+  --ill-ink: #f4f6ff; --ill-a: #a3a6ff; --ill-b: #ffc93d; --ill-c: #262b5c;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -312,6 +316,30 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
   nav.links { display: none; }
   .player { padding: 16px; }
 }
+
+/* contraste e cor: fundo com manchas suaves, cartões com sombra e topo colorido */
+body { background:
+  radial-gradient(900px 500px at 100% -10%, color-mix(in srgb, var(--brand-2) 16%, transparent), transparent 60%),
+  radial-gradient(700px 420px at -10% 20%, color-mix(in srgb, var(--sun) 14%, transparent), transparent 60%),
+  radial-gradient(800px 500px at 50% 110%, color-mix(in srgb, var(--cie) 10%, transparent), transparent 60%),
+  var(--bg); background-attachment: fixed; }
+header.top { border-bottom: 0; }
+header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: linear-gradient(90deg, var(--por), var(--mat), var(--cie), var(--sun), var(--hum)); }
+.brand { color: var(--brand); }
+h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.gate-card h2 { background: none; color: var(--ink); }
+.section-head .eyebrow { color: var(--brand); font-weight: 600; }
+.card, .stat, .player, .kid, .gate-card, .area-tab, .plan { box-shadow: var(--shadow); border-color: var(--line); }
+.stat { background: linear-gradient(180deg, color-mix(in srgb, var(--c, var(--brand)) 12%, var(--sheet)), var(--sheet) 75%); }
+.bar { background: color-mix(in srgb, var(--line) 55%, var(--sheet)); border-color: var(--line); }
+.btn { box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--brand) 70%, transparent); }
+.btn:not(.ghost):not(.sun) { background: linear-gradient(135deg, #3529d6, #7b2ff2); border-color: transparent; color: #fff; }
+.btn.sun { color: #241600; box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--sun) 80%, transparent); }
+.opt { background: var(--sheet); border-color: var(--line); box-shadow: 0 2px 0 var(--line); }
+.opt .bub { font-weight: 700; }
+.chip { font-weight: 600; }
+.ctx { background: var(--area-wash, var(--brand-wash)); color: var(--ink); }
+.player { border-top-width: 8px; }
 </style>
 
 <template id="sabiTpl">
