@@ -289,9 +289,10 @@ details.orig .qimg { margin-top: 8px; }
 .kid-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; font-size: .84rem; color: var(--ink-soft); }
 .kid-stats b { display: block; font-family: var(--f-display); font-size: 1.25rem; color: var(--ink); }
 .kid .msg { white-space: pre-wrap; }
-.pg-wrap { display: grid; gap: 8px; --pg-a: #00796b; --pg-e: #e8303a; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pg-wrap { --pg-a: #4be38a; --pg-e: #ff5a5f; } }
-:root[data-theme="dark"] .pg-wrap { --pg-a: #4be38a; --pg-e: #ff5a5f; }
+.pg-wrap { display: grid; gap: 8px; }
+.kid { --pg-a: #00796b; --pg-e: #e8303a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .kid { --pg-a: #4be38a; --pg-e: #ff5a5f; } }
+:root[data-theme="dark"] .kid { --pg-a: #4be38a; --pg-e: #ff5a5f; }
 .pg { position: relative; }
 .pg svg { width: 100%; height: auto; display: block; overflow: visible; touch-action: pan-y; }
 .pg-grid { stroke: var(--line); stroke-width: 1; opacity: .6; }
@@ -312,6 +313,8 @@ details.orig .qimg { margin-top: 8px; }
 .sw.m { border-color: var(--ink-soft); border-top-style: dashed; } .sw.q { border-color: var(--brand); } .sw.a { border-color: var(--pg-a); } .sw.e { border-color: var(--pg-e); } .sw.p { border-color: var(--ink-soft); border-top-style: dotted; }
 .pg-areas { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .9rem; color: var(--ink-soft); }
 .pg-areas b { color: var(--area, var(--ink)); }
+.pg-areas { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.pg-areas .ok-t { color: var(--pg-a); font-weight: 600; } .pg-areas .bad-t { color: var(--pg-e); font-weight: 600; }
 
 
 /* portão de identificação */
@@ -1045,39 +1048,39 @@ const dOf = k => new Date(k + "T12:00:00");
 const kOf = d => { const z = n => String(n).padStart(2, "0"); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`; };
 const br = k => k.split("-").reverse().slice(0, 2).join("/");
 function progressSeries(p) {
+  /* Valores por dia (meta diária de p.goal questões), do primeiro dia de estudo até a prova. Depois de hoje: média dos últimos 7 dias. */
   const first = [p.created, ...Object.keys(p.days)].filter(Boolean).sort()[0] || dayKey();
   const start = dOf(first), end = dOf(p.exam || "2026-12-06"), today = dOf(dayKey());
   const n = Math.max(1, Math.round((end - start) / DAY_MS) + 1), ti = Math.min(n - 1, Math.max(0, Math.round((today - start) / DAY_MS)));
-  const okDay = {}; p.log.forEach(([ts, , ok]) => { const k = kOf(new Date(ts)); okDay[k] = (okDay[k] || 0) + (ok ? 1 : 0); });
-  const pts = []; let q = 0, a = 0;
+  const okDay = {}, allDay = {}; p.log.forEach(([ts, , ok]) => { const k = kOf(new Date(ts)); okDay[k] = (okDay[k] || 0) + (ok ? 1 : 0); allDay[k] = (allDay[k] || 0) + 1; });
+  const pts = []; let sq = 0, sa = 0;
   for (let i = 0; i < n; i++) {
     const k = kOf(new Date(start.getTime() + i * DAY_MS));
-    const meta = p.goal * (i + 1);
-    if (i <= ti) { q += (p.days[k] || { q: 0 }).q; a += okDay[k] || 0; }
-    pts.push({ k, meta, q: i <= ti ? q : null, a: i <= ti ? a : null, e: i <= ti ? q - a : null });
+    const q = Math.max((p.days[k] || { q: 0 }).q, allDay[k] || 0), a = Math.min(q, okDay[k] || 0);
+    pts.push(i <= ti ? { k, meta: p.goal, q, a, e: q - a } : { k, meta: p.goal });
   }
-  const win = Math.min(7, ti + 1), base = ti + 1 - win;
-  const qBefore = base > 0 ? pts[base - 1].q : 0, aBefore = base > 0 ? pts[base - 1].a : 0;
-  const paceQ = (pts[ti].q - qBefore) / win, paceA = (pts[ti].a - aBefore) / win;
-  for (let i = ti + 1; i < n; i++) { pts[i].pq = Math.round(pts[ti].q + paceQ * (i - ti)); pts[i].pa = Math.round(pts[ti].a + paceA * (i - ti)); pts[i].pe = pts[i].pq - pts[i].pa; }
-  pts[ti].pq = pts[ti].q; pts[ti].pa = pts[ti].a; pts[ti].pe = pts[ti].e;
-  const L = pts[n - 1];
-  return { pts, ti, n, goalTotal: p.goal * n, endQ: n - 1 > ti ? L.pq : pts[ti].q, endA: n - 1 > ti ? L.pa : pts[ti].a, endE: n - 1 > ti ? L.pe : pts[ti].e };
+  const win = Math.min(7, ti + 1);
+  pts.slice(ti + 1 - win, ti + 1).forEach(x => { sq += x.q; sa += x.a; });
+  const avgQ = Math.round(sq / win), avgA = Math.round(sa / win), avgE = avgQ - avgA;
+  for (let i = ti + 1; i < n; i++) Object.assign(pts[i], { pq: avgQ, pa: avgA, pe: avgE });
+  Object.assign(pts[ti], { pq: pts[ti].q, pa: pts[ti].a, pe: pts[ti].e });
+  const left = n - 1 - ti;
+  return { pts, ti, n, left, avgQ, avgA, avgE, peak: Math.max(...pts.slice(0, ti + 1).map(x => x.q)) };
 }
 function progressChart(p, Wp) {
   const S = progressSeries(p), W = Wp || 600, H = W < 450 ? 230 : 250, L = 40, R = W < 450 ? 82 : 92, T = 14, B = 26;
-  const ymax = Math.max(S.goalTotal, S.endQ, 10) * 1.04, xw = W - L - R, yh = H - T - B;
+  const ymax = Math.max(p.goal, S.peak, 10) * 1.12, xw = W - L - R, yh = H - T - B;
   const X = i => L + (S.n === 1 ? 0 : i / (S.n - 1) * xw), Y = v => T + yh - v / ymax * yh;
   const line = (key, from, to) => { let d = ""; for (let i = from; i <= to; i++) { const v = S.pts[i][key]; if (v == null) continue; d += (d ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1); } return d; };
-  const step = ymax > 2000 ? 500 : ymax > 800 ? 200 : ymax > 300 ? 100 : 50;
+  const step = ymax > 80 ? 20 : 10;
   let grid = ""; for (let v = 0; v <= ymax; v += step) grid += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" class="pg-grid"/><text x="${L - 6}" y="${Y(v) + 4}" class="pg-ax" text-anchor="end">${v}</text>`;
   const ticks = (W < 450 ? [0, Math.round((S.n - 1) / 2), S.n - 1] : [0, Math.round((S.n - 1) / 3), Math.round(2 * (S.n - 1) / 3), S.n - 1]).filter((v, i, a) => a.indexOf(v) === i);
   const xt = ticks.map(i => `<text x="${X(i)}" y="${H - 8}" class="pg-ax" text-anchor="${i === 0 ? "start" : i === S.n - 1 ? "end" : "middle"}">${i === S.n - 1 ? "prova " : ""}${br(S.pts[i].k)}</text>`).join("");
   const last = S.n - 1, lab = (y, txt, cls) => `<text x="${W - R + 8}" y="${y}" class="pg-lab ${cls}">${txt}</text>`;
   // rótulos finais sem sobreposição
-  let ys = [[Y(S.goalTotal), `Meta ${S.goalTotal}`, "m"], [Y(S.endQ), `${S.endQ} feitas`, "q"], [Y(S.endA), `${S.endA} certas`, "a"], [Y(S.endE), `${S.endE} erros`, "e"]].sort((a, b) => a[0] - b[0]);
+  let ys = [[Y(p.goal), `Meta ${p.goal}`, "m"], [Y(S.avgQ), `${S.avgQ} feitas`, "q"], [Y(S.avgA), `${S.avgA} certas`, "a"], [Y(S.avgE), `${S.avgE} erros`, "e"]].sort((a, b) => a[0] - b[0]);
   for (let i = 1; i < ys.length; i++) if (ys[i][0] - ys[i - 1][0] < 15) ys[i][0] = ys[i - 1][0] + 15;
-  return `<div class="pg"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Avanço de ${esc(p.name)}: meta de ${S.goalTotal} questões até a prova; no ritmo atual chega a ${S.endQ} respondidas e ${S.endA} certas.">
+  return `<div class="pg"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Questões por dia de ${esc(p.name)} até a prova: meta de ${p.goal} por dia; média recente de ${S.avgQ} feitas, ${S.avgA} certas e ${S.avgE} erros.">
     ${grid}${xt}
     <line x1="${X(S.ti)}" x2="${X(S.ti)}" y1="${T}" y2="${T + yh}" class="pg-today"/><text x="${X(S.ti) + 4}" y="${T + 10}" class="pg-ax">hoje</text>
     <path d="${line("meta", 0, last)}" class="pg-l pg-m"/>
@@ -1098,9 +1101,9 @@ function wireProgressChart(box, p) {
     const i = Math.max(0, Math.min(S.n - 1, Math.round((x - L) / xw * (S.n - 1)))), pt = S.pts[i], cx = L + (S.n === 1 ? 0 : i / (S.n - 1) * xw);
     cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); hov.setAttribute("visibility", "visible");
     const fut = i > S.ti;
-    tip.innerHTML = `<b>${br(pt.k)}${i === S.ti ? " · hoje" : ""}${i === S.n - 1 ? " · prova" : ""}</b>
-      <span><i class="sw m"></i>Meta: ${pt.meta}</span>
-      <span><i class="sw q"></i>${fut ? "Previsto" : "Feitas"}: ${fut ? pt.pq : pt.q}</span>
+    tip.innerHTML = `<b>${br(pt.k)}${i === S.ti ? " · hoje" : ""}${i === S.n - 1 ? " · prova" : ""}${fut ? " · previsão" : ""}</b>
+      <span><i class="sw m"></i>Meta do dia: ${pt.meta}</span>
+      <span><i class="sw q"></i>${fut ? "Feitas previstas" : "Feitas"}: ${fut ? pt.pq : pt.q}</span>
       <span><i class="sw a"></i>${fut ? "Certas previstas" : "Certas"}: ${fut ? pt.pa : pt.a}</span>
       <span><i class="sw e"></i>${fut ? "Erros previstos" : "Erros"}: ${fut ? pt.pe : pt.e}</span>`;
     tip.hidden = false;
@@ -1112,13 +1115,26 @@ function wireProgressChart(box, p) {
   hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show); hit.addEventListener("pointerleave", hide);
 }
 function progressSummary(p) {
-  const S = progressSeries(p), PJ = projection(p), behind = S.pts[S.ti].meta - S.pts[S.ti].q;
-  const pace = S.endQ >= S.goalTotal ? "No ritmo atual, chega à meta até a prova." : `No ritmo atual, chega a ${S.endQ} das ${S.goalTotal} questões até a prova.`;
-  const gap = behind > 0 ? ` Está ${behind} questões atrás da meta acumulada de hoje.` : " Está em dia com a meta.";
+  const S = progressSeries(p), PJ = projection(p);
+  if (!p.log.length) return `Ainda não respondeu questões. A meta é ${p.goal} por dia até a prova.`;
+  const pace = `Média dos últimos dias: ${S.avgQ} questões por dia (${S.avgA} certas e ${S.avgE} erros), para uma meta de ${p.goal}.`;
+  const rest = S.left > 0 ? ` Faltam ${S.left} dias até a prova: nesse ritmo serão ${S.avgQ * S.left} questões, e a meta pede ${p.goal * S.left}.` : "";
   const score = PJ.total === null ? "" : ` Projeção na prova: ${PJ.total} acertos de 50.`;
-  return p.log.length ? pace + gap + score : "Ainda não respondeu questões. O gráfico começa a subir na primeira trilha.";
+  return pace + rest + score;
 }
 
+function todayByArea(p) {
+  /* As 40 questões da meta de hoje divididas por área: pela trilha de hoje, ou pela proporção da prova se ainda não houver trilha. */
+  const plan = {}; AREAS.forEach(a => plan[a] = 0);
+  const ids = p.trail && p.trail.date === dayKey() ? p.trail.ids.slice(0, p.goal) : [];
+  ids.forEach(id => { const q = QMAP[id]; if (q && plan[q.area] !== undefined) plan[q.area]++; });
+  if (!ids.length) { const seats = projection(p).per.map(x => x.inExam * p.goal / 50), fl = seats.map(Math.floor);
+    seats.map((v, i) => [v - fl[i], i]).sort((x, y) => y[0] - x[0]).slice(0, p.goal - fl.reduce((s, v) => s + v, 0)).forEach(([, i]) => fl[i]++);
+    AREAS.forEach((a, i) => plan[a] = fl[i]); }
+  const tk = dayKey(), ok = {}, bad = {};
+  p.log.forEach(([ts, a, o]) => { if (kOf(new Date(ts)) !== tk) return; (o ? ok : bad)[a] = ((o ? ok : bad)[a] || 0) + 1; });
+  return AREAS.map(a => ({ a, plan: plan[a], ok: ok[a] || 0, bad: bad[a] || 0 }));
+}
 function renderKids() {
   if (!DB.profiles.length) { $("#kids").innerHTML = `<p class="tip">Nenhum aluno cadastrado neste aparelho ainda.</p>`; return; }
   $("#kids").innerHTML = DB.profiles.map(p => {
@@ -1126,10 +1142,10 @@ function renderKids() {
     const last = Object.keys(p.days).sort().pop();
     return `<div class="kid" data-id="${p.id}"><div class="kid-head"><h3><i class="avatar">${esc(p.name[0]?.toUpperCase() || "?")}</i>${esc(p.name)}</h3><span class="tip">${last ? "último estudo em " + last.split("-").reverse().join("/") : "ainda não estudou"}</span></div>
       <div class="kid-stats"><div><b>${today}/${p.goal}</b>meta de hoje</div><div><b>${streakOf(p)}</b>dias seguidos</div><div><b>${Math.min(8, weekOf(p) + 1)}/8</b>semana</div><div><b>${p.log.length}</b>respondidas</div><div><b>${PJ.total === null ? "–" : PJ.total + "/50"}</b>projeção</div></div>
-      <div class="pg-wrap"><div class="row" style="justify-content:space-between;align-items:baseline"><b>Avanço até a prova</b><span class="pg-legend"><span><i class="sw m"></i>Meta</span><span><i class="sw q"></i>Feitas</span><span><i class="sw a"></i>Certas</span><span><i class="sw e"></i>Erros</span><span><i class="sw p"></i>Previsão</span></span></div>
+      <div class="pg-wrap"><div class="row" style="justify-content:space-between;align-items:baseline"><b>Questões por dia até a prova</b><span class="pg-legend"><span><i class="sw m"></i>Meta</span><span><i class="sw q"></i>Feitas</span><span><i class="sw a"></i>Certas</span><span><i class="sw e"></i>Erros</span><span><i class="sw p"></i>Previsão (média)</span></span></div>
       ${progressChart(p, Math.round(Math.min(600, Math.max(300, ($("#kids").clientWidth || 600) - 34))))}<p class="tip">${progressSummary(p)}</p></div>
-      <p class="tip" style="margin-bottom:-4px">Acertos previstos por área nas 50 questões da prova:</p>
-      <div class="pg-areas">${PJ.per.map(x => `<span data-area="${x.a}"><b>${x.a}</b> ${x.hits === null ? "–" : x.hits}/${x.inExam}</span>`).join("")}</div>
+      <p class="tip" style="margin-bottom:-4px">Hoje, nas ${p.goal} questões da meta:</p>
+      <div class="pg-areas">${todayByArea(p).map(x => `<span data-area="${x.a}"><b>${x.a}</b> ${x.plan} questões · <span class="ok-t">${x.ok} certas</span> · <span class="bad-t">${x.bad} erros</span></span>`).join("")}</div>
       <div class="row"><button type="button" class="btn small copy">Copiar relatório</button><button type="button" class="btn ghost small del">Remover aluno</button></div><p class="tip msg"></p></div>`;
   }).join("");
   $$("#kids .kid").forEach(k => {
