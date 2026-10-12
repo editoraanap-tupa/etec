@@ -519,10 +519,8 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
       <div class="row" style="justify-content:space-between"><h3>Jornada de 8 semanas</h3><span class="tip" id="jrnInfo"></span></div>
       <div class="journey"><ol id="journey"></ol></div>
     </div>
-    <div class="two">
-      <div class="card"><h3>Últimos 14 dias</h3><div class="chart" id="chart"></div><div class="days" id="chartDays"></div><p class="tip" style="margin-top:8px">Barras verdes: dia com meta cumprida. Linha tracejada: sua meta.</p></div>
-      <div class="card" style="display:grid;gap:12px;align-content:start"><h3>Projeção de acertos por área</h3><p class="tip" style="margin-top:-6px">Quantas questões de cada área costumam cair nas 50 da prova, e quantas você acertaria hoje.</p><div class="proj" id="areaBars"></div><ul class="attn" id="attn" hidden></ul><p class="tip" id="advice"></p></div>
-    </div>
+    <div class="card" style="display:grid;gap:12px"><h3>Seu desempenho</h3><div id="myProgress"></div></div>
+    <div hidden><div id="chart"></div><div id="chartDays"></div><div id="areaBars"></div><ul id="attn"></ul><p id="advice"></p></div>
   </section>
 
   <section class="block" id="provas" hidden>
@@ -864,6 +862,7 @@ function renderPanel() {
   const weak = per.filter(x => x.n >= 3).sort((a, b) => a.acc - b.acc)[0];
   const none = per.filter(x => !x.n).map(x => x.a);
   $("#advice").textContent = !p.log.length ? "A projeção aparece depois das primeiras questões." : weak && weak.gain ? `Foque em ${weak.a}: chegando a 80% de acerto nessa área, você ganha cerca de ${weak.gain} acertos na prova. A trilha já traz mais questões dela.` + (none.length ? ` Ainda falta treinar ${none.join(", ")}.` : "") : none.length ? `Você ainda não treinou ${none.join(", ")}.` : "Responda pelo menos 3 questões de cada área para ver a recomendação.";
+  $("#myProgress").innerHTML = parentView(p, true);
 }
 
 /* ===== questões normalizadas ===== */
@@ -1108,7 +1107,7 @@ function progressSeries(p) {
   const left = n - 1 - ti;
   return { pts, ti, n, left, avgQ, avgA, avgE, peak: Math.max(...pts.slice(0, ti + 1).map(x => x.q)) };
 }
-function parentView(p) {
+function parentView(p, noToday) {
   /* Painel para os pais: hoje, últimos 7 dias, acertos, caminho até a prova e áreas. Números grandes e frases curtas. */
   const tk = dayKey(), PJ = projection(p), S = progressSeries(p);
   const day = k => { let q = (p.days[k] || { q: 0 }).q, ok = 0, n = 0; p.log.forEach(([ts, , o]) => { if (kOf(new Date(ts)) === k) { n++; if (o) ok++; } }); q = Math.max(q, n); return { q, ok: Math.min(ok, q), err: Math.max(0, n - ok) }; };
@@ -1130,17 +1129,17 @@ function parentView(p) {
   const pct = accAll === null ? null : Math.round(accAll * 100);
   const acertos = `<div class="pv-card"><div class="pv-top"><span class="eyebrow">Acertos</span>${trend}</div>
     <p class="pv-big">${pct === null ? "–" : pct + "%"} <small>${pct === null ? "ainda sem respostas" : "das questões respondidas"}</small></p>
-    <p class="pv-txt">${p.log.length < 10 ? "Ainda são poucas questões para medir bem. Depois de umas 40, o número fica confiável." : `De cada 10 questões, acerta <b>${Math.round(accAll * 10)}</b>. ${PJ.total === null ? "" : `Se a prova fosse hoje, acertaria cerca de <b>${PJ.total} das 50</b>.`}`}</p></div>`;
+    <p class="pv-txt">${p.log.length < 10 ? "Ainda são poucas questões para medir bem. Depois de umas 40, o número fica confiável." : `Nas ${p.goal} questões do dia, acerta em média <b>${Math.round(accAll * p.goal)}</b> e erra <b>${p.goal - Math.round(accAll * p.goal)}</b>.`}</p></div>`;
   const planned = p.goal * S.n, done = p.log.length, pDone = Math.min(100, done / planned * 100), pShould = Math.min(100, p.goal * (S.ti + 1) / planned * 100);
   const daysLeft = S.n - 1 - S.ti, behind = p.goal * (S.ti + 1) - done;
-  const prova = `<div class="pv-card"><div class="pv-top"><span class="eyebrow">Até a prova</span><span class="pv-pill none">${daysLeft} ${daysLeft === 1 ? "dia" : "dias"} · ${br(p.exam || "2026-12-06")}</span></div>
+  const prova = `<div class="pv-card${noToday ? " wide" : ""}"><div class="pv-top"><span class="eyebrow">Até a prova</span><span class="pv-pill none">${daysLeft} ${daysLeft === 1 ? "dia" : "dias"} · ${br(p.exam || "2026-12-06")}</span></div>
     <p class="pv-big">${done} <small>de ${planned} questões do plano</small></p>
     <div class="pv-bar plan"><i class="done" style="width:${pDone}%"></i><b class="mark" style="left:${pShould}%" title="Onde deveria estar hoje"></b></div>
     <p class="pv-txt">${done === 0 ? `O plano é ${p.goal} questões por dia até a prova.` : behind > 0 ? `Está <b class="t-err">${behind} questões atrás</b> do plano. O risco preto mostra onde deveria estar hoje.` : `<b class="t-ok">Está em dia</b> com o plano.`}${done && S.avgQ ? ` Média recente: ${S.avgQ} por dia.` : ""}</p></div>`;
   const LV = { good: ["good", "bom"], mid: ["mid", "atenção"], bad: ["bad", "precisa reforçar"], none: ["none", "poucos dados"] };
   const areas = `<div class="pv-card wide"><div class="pv-top"><span class="eyebrow">Acertos por matéria</span></div>${PJ.per.map(x => { const [c, w] = LV[x.lvl]; const v = x.acc === null ? 0 : Math.round(x.acc * 100);
     return `<div class="pv-area" data-area="${x.a}"><span class="nm">${x.a}</span><div class="pv-bar"><i class="${c}" style="width:${x.lvl === "none" ? 0 : v}%"></i></div><span class="v">${x.lvl === "none" ? "–" : v + "%"}</span><span class="pv-pill ${c}">${w}</span><small>${x.n} ${x.n === 1 ? "questão feita" : "questões feitas"}</small></div>`; }).join("")}</div>`;
-  return `<div class="pv">${hoje}${semana}${acertos}${prova}${areas}</div>`;
+  return `<div class="pv">${noToday ? "" : hoje}${semana}${acertos}${prova}${areas}</div>`;
 }
 function renderKids() {
   if (!DB.profiles.length) { $("#kids").innerHTML = `<p class="tip">Nenhum aluno cadastrado neste aparelho ainda.</p>`; return; }
