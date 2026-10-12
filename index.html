@@ -492,7 +492,7 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
     <div class="stats">
       <div class="stat" style="--c: var(--brand)"><span class="eyebrow">Meta de hoje</span><b id="stToday">0/10</b><div class="bar"><i id="stTodayBar" style="width:0%"></i></div><span class="sub" id="stTodayMsg">Comece a trilha de hoje.</span></div>
       <div class="stat" style="--c: var(--sun)"><span class="eyebrow">Sequência</span><b id="stStreak">0 dias</b><span class="sub" id="stStreakMsg">seguidos cumprindo a meta</span></div>
-      <div class="stat" style="--c: var(--ok)"><span class="eyebrow">Projeção na prova</span><b id="stProj">–</b><span class="sub" id="stProjMsg">acertos previstos em 50 questões</span></div>
+      <div class="stat" style="--c: var(--ok)"><span class="eyebrow">Acertos de hoje</span><b id="stProj">–</b><span class="sub" id="stProjMsg">acertos / questões feitas</span></div>
       <div class="stat" style="--c: var(--por)"><span class="eyebrow">Até a prova</span><b id="stDays">–</b><span class="sub" id="stDaysMsg">informe a data da prova</span></div>
     </div>
     <div class="start-cta" hidden>
@@ -831,8 +831,10 @@ function renderPanel() {
   const act7 = [...Array(7)].filter((_, i) => { const x = new Date(); x.setDate(x.getDate() - i); return (p.days[dayKey(x)] || { q: 0 }).q > 0; }).length;
   $("#stStreakMsg").textContent = `seguidos na meta · estudou ${act7} dos últimos 7 dias`;
   const acc = accuracy(p.log), PJ = projection(p);
-  if (acc === null) { $("#stProj").textContent = "–"; $("#stProjMsg").textContent = "responda questões para calcular"; }
-  else { $("#stProj").textContent = `${PJ.total}/50`; $("#stProjMsg").textContent = p.log.length < 30 ? `estimativa com ${p.log.length} respostas; melhora após 30` : `acertos previstos, com base em ${p.log.length} respostas`; }
+  { /* Acertos sobre as questões feitas hoje */
+    const tk = dayKey(), hoje = p.log.filter(x => dayKey(new Date(x[0])) === tk), ok = hoje.filter(x => x[2]).length, er = hoje.length - ok;
+    if (!hoje.length) { $("#stProj").textContent = "0/0"; $("#stProjMsg").textContent = "acertos / questões feitas hoje"; }
+    else { $("#stProj").textContent = `${ok}/${hoje.length}`; $("#stProjMsg").textContent = `${Math.round(ok / hoje.length * 100)}% de acerto · ${er} ${er === 1 ? "erro" : "erros"} hoje`; } }
   if (p.exam) {
     const diff = Math.ceil((new Date(p.exam + "T12:00:00") - new Date()) / 86400000);
     $("#stDays").textContent = diff >= 0 ? (diff === 1 ? "1 dia" : `${diff} dias`) : "–";
