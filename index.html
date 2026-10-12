@@ -748,9 +748,12 @@ function projection(p) {
     Object.keys(p.seen).filter(k => !k.endsWith(":err")).forEach(id => { const q = QMAP[id]; if (!q) return; const k = q.area + "|" + (q.tema || "Outros"); const v = p.tm[k] || [0, 0]; v[0] += p.seen[id]; v[1] += p.seen[id] - (p.seen[id + ":err"] ? 1 : 0); p.tm[k] = v; });
     save();
   }
-  const per = AREAS.map(a => {
+  /* Questões de cada área nas 50 da prova, arredondadas para a soma dar exatamente 50 (maiores restos). */
+  const share = AREAS.map(a => tot ? 50 * (cnt[a] || 0) / tot : 12.5), seats = share.map(Math.floor);
+  share.map((v, i) => [v - seats[i], i]).sort((x, y) => y[0] - x[0]).slice(0, 50 - seats.reduce((s, v) => s + v, 0)).forEach(([, i]) => seats[i]++);
+  const per = AREAS.map((a, ai) => {
     const l = p.log.filter(x => x[1] === a), acc = accuracy(l);
-    const inExam = tot ? Math.round(50 * (cnt[a] || 0) / tot) : 12;
+    const inExam = seats[ai];
     const use = l.length >= 3 ? acc : all;
     const lvl = acc === null || l.length < 3 ? "none" : acc < .5 ? "bad" : acc < .7 ? "mid" : "good";
     return { a, n: l.length, acc, inExam, hits: use === null ? null : Math.round(inExam * use), lvl, gain: use === null ? 0 : Math.max(0, Math.round(inExam * .8) - Math.round(inExam * use)) };
@@ -1125,6 +1128,7 @@ function renderKids() {
       <div class="kid-stats"><div><b>${today}/${p.goal}</b>meta de hoje</div><div><b>${streakOf(p)}</b>dias seguidos</div><div><b>${Math.min(8, weekOf(p) + 1)}/8</b>semana</div><div><b>${p.log.length}</b>respondidas</div><div><b>${PJ.total === null ? "–" : PJ.total + "/50"}</b>projeção</div></div>
       <div class="pg-wrap"><div class="row" style="justify-content:space-between;align-items:baseline"><b>Avanço até a prova</b><span class="pg-legend"><span><i class="sw m"></i>Meta</span><span><i class="sw q"></i>Feitas</span><span><i class="sw a"></i>Certas</span><span><i class="sw e"></i>Erros</span><span><i class="sw p"></i>Previsão</span></span></div>
       ${progressChart(p, Math.round(Math.min(600, Math.max(300, ($("#kids").clientWidth || 600) - 34))))}<p class="tip">${progressSummary(p)}</p></div>
+      <p class="tip" style="margin-bottom:-4px">Acertos previstos por área nas 50 questões da prova:</p>
       <div class="pg-areas">${PJ.per.map(x => `<span data-area="${x.a}"><b>${x.a}</b> ${x.hits === null ? "–" : x.hits}/${x.inExam}</span>`).join("")}</div>
       <div class="row"><button type="button" class="btn small copy">Copiar relatório</button><button type="button" class="btn ghost small del">Remover aluno</button></div><p class="tip msg"></p></div>`;
   }).join("");
