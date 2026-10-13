@@ -836,8 +836,9 @@ function renderPanel() {
     if (!hoje.length) { $("#stProj").textContent = "0/0"; $("#stProjMsg").textContent = "acertos / questões feitas hoje"; }
     else { $("#stProj").textContent = `${ok}/${hoje.length}`; $("#stProjMsg").textContent = `${Math.round(ok / hoje.length * 100)}% de acerto · ${er} ${er === 1 ? "erro" : "erros"} hoje`; } }
   if (p.exam) {
-    const diff = Math.ceil((new Date(p.exam + "T12:00:00") - new Date()) / 86400000);
-    $("#stDays").textContent = diff >= 0 ? (diff === 1 ? "1 dia" : `${diff} dias`) : "–";
+    /* Dias de calendário entre hoje (relógio do aparelho) e o dia da prova: muda à meia-noite. */
+    const diff = Math.round((new Date(p.exam + "T00:00:00") - new Date(dayKey() + "T00:00:00")) / 86400000);
+    $("#stDays").textContent = diff > 1 ? `${diff} dias` : diff === 1 ? "1 dia" : diff === 0 ? "É hoje!" : "–";
     $("#stDaysMsg").textContent = diff >= 0 ? `prova em ${p.exam.split("-").reverse().join("/")}${p.exam === "2026-12-06" ? ", às 13h30" : ""} · ${diff * p.goal} questões até lá` : "a data informada já passou";
   } else { $("#stDays").textContent = "–"; $("#stDaysMsg").textContent = "toque no seu nome, no topo, para informar"; }
   const t = p.trail && p.trail.date === dayKey() ? p.trail : null;
@@ -1200,6 +1201,13 @@ $("#gateForm").addEventListener("submit", e => {
 $("#gateFamily").addEventListener("click", () => { $("#gate").hidden = true; renderKids(); $("#familia").scrollIntoView({ block: "start" }); });
 $("#whoBtn").addEventListener("click", openGate);
 function afterLogin() { renderPanel(); startTrail(); renderKids(); if (EXAMS.length) openExam(ofKey || EXAMS[0].id, false); }
+
+/* Virada do dia: se o site ficar aberto, a contagem, a meta e a trilha do dia se atualizam sozinhas. */
+let shownDay = dayKey();
+function checkNewDay() { if (dayKey() === shownDay) return; shownDay = dayKey(); if (me()) afterLogin(); else renderPanel(); }
+setInterval(checkNewDay, 60000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkNewDay(); });
+window.addEventListener("focus", checkNewDay);
 
 /* ===== início ===== */
 put($("#brandSabi")); renderVoice(); renderPanel();
