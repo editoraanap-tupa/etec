@@ -289,6 +289,19 @@ details.orig .qimg { margin-top: 8px; }
 .kid-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; font-size: .84rem; color: var(--ink-soft); }
 .kid-stats b { display: block; font-family: var(--f-display); font-size: 1.25rem; color: var(--ink); }
 .kid .msg { white-space: pre-wrap; }
+.ref-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.ref-topic { text-align: left; display: grid; gap: 4px; padding: 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--sheet); color: var(--ink); cursor: pointer; box-shadow: var(--shadow, none); border-left: 6px solid var(--mat); }
+.ref-topic b { font-family: var(--f-display); font-size: 1.05rem; color: var(--mat); }
+.ref-topic small { color: var(--ink-soft); font-size: .85rem; }
+.ref-topic[aria-pressed="true"] { border-color: var(--mat); background: var(--brand-wash); }
+.ref-box { margin-top: 16px; display: grid; gap: 14px; scroll-margin-top: 80px; }
+.ref-head { display: flex; justify-content: space-between; align-items: start; gap: 10px; }
+.ref-learn { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.ref-learn h4 { font-family: var(--f-display); margin-bottom: 6px; }
+.ref-learn ul, .ref-learn ol { padding-left: 1.2em; display: grid; gap: 6px; }
+.ref-ex { background: var(--bg); border-left: 4px solid var(--mat); border-radius: 0 12px 12px 0; padding: 12px 14px; }
+.ref-tabs { gap: 8px; flex-wrap: wrap; }
+#reforco { scroll-margin-top: 70px; }
 .pv { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 640px) { .pv { grid-template-columns: minmax(0, 1fr); } }
 .pv-card { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 8px; align-content: start; }
@@ -457,6 +470,7 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
     <nav class="links" aria-label="Seções">
       <a href="#inicio">Painel</a>
       <a href="#trilha">Trilha</a>
+      <a href="#reforco">Reforço</a>
       <a href="#plano">Plano</a>
       <a href="#familia">Família</a>
     </nav>
@@ -543,6 +557,16 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
     </div>
     <div class="area-tabs" id="areaTabs" role="tablist" aria-label="Áreas"></div>
     <div id="areaPanels"></div>
+  </section>
+
+  <section class="block" id="reforco">
+    <div class="section-head">
+      <p class="eyebrow">Atividades de reforço</p>
+      <h2>Reforço de Matemática</h2>
+      <p>Os conteúdos de Matemática que o edital do Vestibulinho cobra: o Ensino Fundamental II, pela BNCC. Escolha um tema, leia o resumo, veja o exemplo e treine. Os exercícios mudam a cada vez, e cada tema também traz as questões oficiais das provas anteriores.</p>
+    </div>
+    <div class="ref-grid" id="refGrid"></div>
+    <div class="card ref-box" id="refBox" hidden></div>
   </section>
 
   <section class="block" id="plano">
@@ -1200,7 +1224,212 @@ $("#gateForm").addEventListener("submit", e => {
 });
 $("#gateFamily").addEventListener("click", () => { $("#gate").hidden = true; renderKids(); $("#familia").scrollIntoView({ block: "start" }); });
 $("#whoBtn").addEventListener("click", openGate);
-function afterLogin() { renderPanel(); startTrail(); renderKids(); if (EXAMS.length) openExam(ofKey || EXAMS[0].id, false); }
+function afterLogin() { renderPanel(); startTrail(); renderKids(); renderReforco(); if (EXAMS.length) openExam(ofKey || EXAMS[0].id, false); }
+
+/* ===== reforço de matemática =====
+   Temas de Matemática do Ensino Fundamental II (BNCC), que é o que o edital do Vestibulinho cobra.
+   Cada tema tem: o que saber, um exemplo resolvido, exercícios gerados na hora (sempre diferentes)
+   e as questões oficiais de provas anteriores daquele tema. */
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const nf = (n, d = 2) => Number(n).toLocaleString("pt-BR", { maximumFractionDigits: d });
+const brl = n => "R$ " + Number(n).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const gcd = (a, b) => b ? gcd(b, a % b) : Math.abs(a);
+const frac = (a, b) => { const g = gcd(a, b); a /= g; b /= g; return b === 1 ? String(a) : `${a}/${b}`; };
+/* Monta a questão com 5 alternativas: a certa + distrações (erros comuns), sem repetir. */
+function mcq(stem, right, wrongs, why, fill) {
+  const show = v => typeof v === "number" ? nf(v) : String(v);
+  right = show(right); const seen = new Set([right]), opts = [right];
+  for (const w of wrongs) { const s = show(w); if (opts.length < 5 && !seen.has(s)) { seen.add(s); opts.push(s); } }
+  let guard = 0; while (opts.length < 5 && guard++ < 80) { const s = show(fill()); if (!seen.has(s) && (/^-/.test(right) || !/(^|\s)-|R\$ -/.test(s))) { seen.add(s); opts.push(s); } }
+  for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+  return { stem, opts, c: opts.indexOf(right), why };
+}
+const REF = [
+  { id: "num", t: "Frações, decimais e operações", u: "Números",
+    saber: ["Para somar frações, deixe os denominadores iguais (MMC) e some só os numeradores.", "Fração de um número: divida pelo denominador e multiplique pelo numerador. 3/4 de 80 = 80 ÷ 4 × 3 = 60.", "Com decimais, alinhe as vírgulas para somar e subtrair.", "Simplifique sempre: divida em cima e embaixo pelo mesmo número."],
+    ex: ["Quanto é 2/3 de 45?", "45 ÷ 3 = 15 (um terço).", "15 × 2 = 30. Resposta: 30."],
+    re: /fra[cç]|decima|divis[aã]o|primo|opera[cç]|sal[aá]rio|pre[cç]o por|reta num/,
+    gen: [
+      () => { const b = pick([3, 4, 5, 6, 8, 10]), a = rnd(1, b - 1), v = b * rnd(4, 20), r = v / b * a;
+        return mcq(`Quanto é ${a}/${b} de ${v}?`, r, [v / a * b, v / b, v * a, r + v / b], `${v} ÷ ${b} = ${v / b}. Depois, ${v / b} × ${a} = ${r}.`, () => r + rnd(-9, 9)); },
+      () => { const b = pick([4, 6, 8, 10, 12]), d = pick([2, 3, 4, 6].filter(x => x !== b)), a = rnd(1, b - 1), c = rnd(1, d - 1), m = b * d / gcd(b, d), n = a * m / b + c * m / d;
+        return mcq(`Quanto é ${a}/${b} + ${c}/${d}?`, frac(n, m), [frac(a + c, b + d), frac(a * c, b * d), frac(n + 1, m), frac(a + c, m)], `MMC de ${b} e ${d} é ${m}. ${a}/${b} = ${a * m / b}/${m} e ${c}/${d} = ${c * m / d}/${m}. Somando: ${n}/${m}${frac(n, m) !== n + "/" + m ? ` = ${frac(n, m)}` : ""}.`, () => frac(rnd(1, 20), m)); },
+      () => { const q = rnd(2, 5), pc = rnd(105, 495) / 100, pay = pick([10, 20, 50]), tot = Math.round(q * pc * 100) / 100, r = Math.round((pay - tot) * 100) / 100;
+        if (r <= 0) return REF[0].gen[0]();
+        return mcq(`Lia comprou ${q} cadernos de ${brl(pc)} cada e pagou com uma nota de ${brl(pay)}. Quanto recebeu de troco?`, brl(r), [brl(pay - pc), brl(tot), brl(r + 1), brl(r - 0.1)], `${q} × ${brl(pc)} = ${brl(tot)}. Troco: ${brl(pay)} − ${brl(tot)} = ${brl(r)}.`, () => brl(r + rnd(-30, 30) / 10)); }
+    ] },
+  { id: "pct", t: "Porcentagem", u: "Números",
+    saber: ["x% é x em cada 100. 25% = 25/100 = 0,25.", "Para achar x% de um valor, multiplique pelo decimal. 30% de 200 = 0,3 × 200 = 60.", "Desconto de 20%: você paga 80% (× 0,8). Aumento de 10%: × 1,1.", "Dois aumentos seguidos NÃO se somam: 10% e depois 10% dá 21% (1,1 × 1,1 = 1,21)."],
+    ex: ["Uma camiseta de R$ 80,00 teve 15% de desconto. Quanto custa agora?", "Pagar 85% do preço: 0,85 × 80.", "0,85 × 80 = 68. Resposta: R$ 68,00."],
+    re: /porcent/,
+    gen: [
+      () => { const p = pick([5, 10, 12, 15, 20, 25, 30, 40, 75]), v = pick([40, 60, 80, 120, 150, 200, 250, 360, 480]), r = p * v / 100;
+        return mcq(`Quanto é ${p}% de ${v}?`, nf(r), [nf(v / p), nf(p * v / 10), nf(v - r), nf(r * 2)], `${p}% = ${nf(p / 100)}. ${nf(p / 100)} × ${v} = ${nf(r)}.`, () => nf(r + rnd(-10, 10))); },
+      () => { const p = pick([10, 15, 20, 25, 30, 40]), v = pick([60, 80, 120, 150, 200, 240, 300]), r = v * (100 - p) / 100;
+        return mcq(`Um tênis custa ${brl(v)} e está com ${p}% de desconto. Qual é o novo preço?`, brl(r), [brl(v * p / 100), brl(v - p), brl(v * (100 + p) / 100), brl(r - 10)], `Com ${p}% de desconto, paga-se ${100 - p}% do preço: ${nf((100 - p) / 100)} × ${v} = ${brl(r)}.`, () => brl(r + rnd(-20, 20))); },
+      () => { const a = pick([10, 20, 30, 50]), b = pick([10, 20, 25, 50]), r = Math.round(((1 + a / 100) * (1 + b / 100) - 1) * 1000) / 10;
+        return mcq(`Um produto subiu ${a}% em um mês e ${b}% no mês seguinte. Qual foi o aumento total?`, nf(r, 1) + "%", [(a + b) + "%", nf(a * b / 100, 1) + "%", nf(r + 5, 1) + "%", nf((a + b) / 2, 1) + "%"], `Multiplique os fatores: ${nf(1 + a / 100)} × ${nf(1 + b / 100)} = ${nf(1 + r / 100, 3)}. Isso é um aumento de ${nf(r, 1)}%, não ${a + b}%.`, () => nf(r + rnd(-15, 15), 1) + "%"); },
+      () => { const t = pick([20, 25, 40, 50, 80, 200]), p = pick([10, 20, 25, 40, 50, 75]), x = t * p / 100;
+        if (x !== Math.round(x)) return REF[1].gen[0]();
+        return mcq(`Numa turma de ${t} alunos, ${x} usam óculos. Que porcentagem da turma usa óculos?`, p + "%", [x + "%", nf(t / x, 1) + "%", (100 - p) + "%", (p / 2) + "%"], `${x} ÷ ${t} = ${nf(x / t)} = ${p}%.`, () => rnd(5, 95) + "%"); }
+    ] },
+  { id: "prop", t: "Razão, proporção e regra de três", u: "Álgebra e Números",
+    saber: ["Grandezas diretas: se uma dobra, a outra dobra (preço e quantidade).", "Grandezas inversas: se uma dobra, a outra cai pela metade (operários e dias).", "Velocidade média = distância ÷ tempo. 180 km em 2 h = 90 km/h.", "Escala 1:100 000 quer dizer que 1 cm no mapa é 100 000 cm (1 km) na realidade."],
+    ex: ["5 kg de arroz custam R$ 30,00. Quanto custam 8 kg?", "1 kg custa 30 ÷ 5 = R$ 6,00.", "8 × 6 = 48. Resposta: R$ 48,00."],
+    re: /raz[aã]o|propor|regra de tr|velocidade|escala|vaz[aã]o|densidade|concentra|tempo e|dias|pre[cç]o por/,
+    gen: [
+      () => { const k = rnd(2, 6), u = rnd(2, 9), m = rnd(k + 1, 15), r = u * m;
+        return mcq(`${k} pacotes de biscoito custam ${brl(k * u)}. Quanto custam ${m} pacotes?`, brl(r), [brl(k * u + m), brl(k * u * m), brl(r - u), brl(r + u)], `Um pacote custa ${brl(k * u)} ÷ ${k} = ${brl(u)}. ${m} × ${brl(u)} = ${brl(r)}.`, () => brl(r + rnd(-15, 15))); },
+      () => { const w = pick([2, 3, 4, 6]), d = pick([6, 8, 10, 12, 15]), w2 = pick([w * 2, w * 3, w + 2].filter(x => (w * d) % x === 0)) || w * 2, r = w * d / w2;
+        return mcq(`${w} pedreiros constroem um muro em ${d} dias. Em quantos dias ${w2} pedreiros, no mesmo ritmo, constroem o mesmo muro?`, nf(r), [nf(d * w2 / w), nf(d + w2 - w), nf(d - 1), nf(d)], `É inversa: mais pedreiros, menos dias. Trabalho total = ${w} × ${d} = ${w * d}. Com ${w2}: ${w * d} ÷ ${w2} = ${nf(r)} dias.`, () => nf(r + rnd(-5, 5))); },
+      () => { const v = pick([40, 50, 60, 72, 80, 90]), h = pick([1.5, 2, 2.5, 3, 4]), dist = v * h;
+        return mcq(`Um ônibus percorreu ${nf(dist)} km em ${h === Math.floor(h) ? h + " horas" : Math.floor(h) + " h e 30 min"}. Qual foi a velocidade média?`, v + " km/h", [nf(dist * h) + " km/h", nf(dist / Math.floor(h)) + " km/h", (v + 10) + " km/h", nf(dist - h) + " km/h"], `Velocidade = distância ÷ tempo = ${nf(dist)} ÷ ${nf(h)} = ${v} km/h.${h !== Math.floor(h) ? " Atenção: 30 min = 0,5 h." : ""}`, () => (v + rnd(-20, 20)) + " km/h"); },
+      () => { const s = pick([50000, 100000, 200000, 500000]), cm = rnd(2, 12), km = cm * s / 100000;
+        return mcq(`Num mapa de escala 1:${s.toLocaleString("pt-BR")}, duas cidades estão a ${cm} cm uma da outra. Qual é a distância real?`, nf(km) + " km", [nf(km * 10) + " km", nf(km / 10) + " km", nf(cm * s) + " km", nf(km + 1) + " km"], `${cm} cm × ${s.toLocaleString("pt-BR")} = ${(cm * s).toLocaleString("pt-BR")} cm. Como 1 km = 100 000 cm, isso dá ${nf(km)} km.`, () => nf(km + rnd(-5, 5)) + " km"); }
+    ] },
+  { id: "pot", t: "Potências, raízes e notação científica", u: "Números",
+    saber: ["2⁵ = 2 × 2 × 2 × 2 × 2 = 32 (não é 2 × 5).", "Qualquer número (menos 0) elevado a 0 dá 1.", "Raiz quadrada: o número que, multiplicado por ele mesmo, dá o valor. √49 = 7.", "Notação científica: um número entre 1 e 10 vezes uma potência de 10. 0,00045 = 4,5 × 10⁻⁴."],
+    ex: ["Escreva 3 200 000 em notação científica.", "Ponha a vírgula depois do primeiro algarismo: 3,2.", "A vírgula andou 6 casas: 3,2 × 10⁶."],
+    re: /pot[eê]ncia|nota[cç][aã]o cient|raiz|primo/,
+    gen: [
+      () => { const a = rnd(2, 5), n = rnd(2, a > 3 ? 3 : 5), r = a ** n;
+        return mcq(`Quanto vale ${a}${"⁰¹²³⁴⁵⁶"[n]}?`, r, [a * n, a + n, r * a, n ** a === r ? r + 1 : n ** a], `${a}${"⁰¹²³⁴⁵⁶"[n]} = ${Array(n).fill(a).join(" × ")} = ${r}.`, () => r + rnd(-10, 10)); },
+      () => { const r = rnd(4, 20), v = r * r;
+        return mcq(`Qual é a raiz quadrada de ${v}?`, r, [v / 2, r + 1, r - 1, r * 2], `${r} × ${r} = ${v}, então √${v} = ${r}.`, () => r + rnd(-6, 6)); },
+      () => { const m = rnd(11, 99) / 10, e = rnd(3, 7), big = Math.random() < .5, val = big ? m * 10 ** e : m / 10 ** e;
+        const txt = big ? Math.round(val).toLocaleString("pt-BR") : val.toLocaleString("pt-BR", { maximumFractionDigits: 12 });
+        const sup = k => String(k).split("").map(ch => "⁰¹²³⁴⁵⁶⁷⁸⁹"["0123456789".indexOf(ch)] || "⁻").join(""), ne = big ? e : -e;
+        return mcq(`Como se escreve ${txt} em notação científica?`, `${nf(m, 1)} × 10${sup(ne)}`, [`${nf(m, 1)} × 10${sup(-ne)}`, `${nf(m, 1)} × 10${sup(ne + 1)}`, `${nf(m * 10, 0)} × 10${sup(ne - 1)}`, `${nf(m, 1)} × 10${sup(ne - 1)}`], `Coloque a vírgula depois do primeiro algarismo diferente de zero: ${nf(m, 1)}. A vírgula andou ${e} casas ${big ? "para a esquerda, então o expoente é positivo" : "para a direita, então o expoente é negativo"}: 10${sup(ne)}.`, () => `${nf(m, 1)} × 10${sup(rnd(-9, 9))}`); }
+    ] },
+  { id: "eq1", t: "Equações do 1º grau e sistemas", u: "Álgebra",
+    saber: ["Equação é uma balança: o que fizer de um lado, faça do outro.", "Para isolar x: tire o número que soma (subtraindo) e depois o que multiplica (dividindo).", "Sistema: duas equações com duas incógnitas. Some ou substitua uma na outra.", "Sempre confira: coloque o valor achado na equação e veja se dá certo."],
+    ex: ["Resolva 3x + 7 = 31.", "Tire 7 dos dois lados: 3x = 24.", "Divida por 3: x = 8. Conferindo: 3 × 8 + 7 = 31. ✓"],
+    re: /equa[cç][aã]o do (primeiro|1)|sistema|f[oó]rmula|fun[cç][aã]o do primeiro|valor num/,
+    gen: [
+      () => { const a = rnd(2, 9), x = rnd(2, 15), b = rnd(1, 30), c = a * x + b;
+        return mcq(`Qual é o valor de x em ${a}x + ${b} = ${c}?`, x, [(c + b) / a === Math.round((c + b) / a) ? (c + b) / a : x + 2, c - b, x + 1, x - 1], `${a}x = ${c} − ${b} = ${c - b}. x = ${c - b} ÷ ${a} = ${x}.`, () => x + rnd(-8, 8)); },
+      () => { const m = rnd(3, 12), c = rnd(4, 20), v = m + c, rd = 2 * m + 4 * c;
+        return mcq(`Num estacionamento há carros e motos: ${v} veículos e ${rd} rodas ao todo. Quantas motos há?`, m, [c, v / 2, rd / 4, m + 2], `Se todos fossem motos: ${v} × 2 = ${2 * v} rodas. Sobram ${rd} − ${2 * v} = ${rd - 2 * v} rodas, 2 a mais por carro: ${(rd - 2 * v) / 2} carros. Motos: ${v} − ${c} = ${m}.`, () => rnd(1, v)); },
+      () => { const a = rnd(10, 40), b = rnd(2, a - 1), s = a + b, d = a - b;
+        return mcq(`A soma de dois números é ${s} e a diferença entre eles é ${d}. Qual é o maior?`, a, [b, s / 2, d, a + 1], `Somando as duas equações (x + y = ${s} e x − y = ${d}): 2x = ${s + d}, então x = ${a}.`, () => a + rnd(-10, 10)); }
+    ] },
+  { id: "eq2", t: "Equação do 2º grau e funções", u: "Álgebra",
+    saber: ["Função f(x) = 2x + 3: para achar f(5), troque x por 5: 2 × 5 + 3 = 13.", "Equação do 2º grau: ax² + bx + c = 0. Use Bhaskara: Δ = b² − 4ac e x = (−b ± √Δ) ÷ 2a.", "Atalho quando a = 1: as raízes somam −b e multiplicam c.", "Muitas questões de área viram 2º grau: lados x e x + 3 com área 40 dão x² + 3x = 40."],
+    ex: ["Resolva x² − 7x + 10 = 0.", "Dois números que somam 7 e multiplicam 10: 2 e 5.", "Raízes: x = 2 e x = 5."],
+    re: /2º grau|segundo grau|fun[cç][aã]o|queda livre|aplica[cç][aã]o de f[oó]rmula/,
+    gen: [
+      () => { const a = rnd(2, 6), b = rnd(-10, 10), k = rnd(-4, 9), r = a * k + b, f = `${a}x ${b < 0 ? "− " + -b : "+ " + b}`;
+        return mcq(`Se f(x) = ${f}, quanto vale f(${k})?`, r, [a + k + b, a * k, r + a, a * (k + b)], `Troque x por ${k}: ${a} × (${k}) ${b < 0 ? "− " + -b : "+ " + b} = ${r}.`, () => r + rnd(-8, 8)); },
+      () => { const p = rnd(1, 9), q = rnd(p + 1, 12), s = p + q, m = p * q;
+        return mcq(`Quais são as raízes de x² − ${s}x + ${m} = 0?`, `${p} e ${q}`, [`${-p} e ${-q}`, `${p - 1} e ${q + 1}`, `1 e ${m}`, `${s} e ${m}`], `Procure dois números que somam ${s} e multiplicam ${m}: ${p} e ${q}. Confira: ${p}² − ${s}·${p} + ${m} = 0.`, () => `${rnd(1, 9)} e ${rnd(10, 15)}`); },
+      () => { const x = rnd(3, 12), k = rnd(1, 6), A = x * (x + k);
+        return mcq(`Um terreno retangular tem um lado ${k} m maior que o outro e área de ${A} m². Quanto mede o lado menor?`, x + " m", [(x + k) + " m", nf(A / 2) + " m", (x - 1) + " m", nf(Math.sqrt(A), 1) + " m"], `Lados x e x + ${k}: x(x + ${k}) = ${A}, ou seja x² + ${k}x − ${A} = 0. A raiz positiva é x = ${x}. Confira: ${x} × ${x + k} = ${A}.`, () => rnd(2, 20) + " m"); }
+    ] },
+  { id: "geo", t: "Ângulos, triângulos e Pitágoras", u: "Geometria",
+    saber: ["Os ângulos internos de um triângulo somam 180°.", "Polígono de n lados: soma dos ângulos internos = (n − 2) × 180°.", "Pitágoras (triângulo retângulo): hipotenusa² = cateto² + cateto².", "Triângulos semelhantes têm lados proporcionais."],
+    ex: ["Uma escada de 5 m encosta num muro com o pé a 3 m da parede. Que altura alcança?", "5² = 3² + h², então 25 = 9 + h².", "h² = 16, h = 4 m."],
+    re: /pit[aá]goras|tri[aâ]ngulo|[aâ]ngulo|pol[ií]gono|quadril|losango|semelhan|trigono|seno|cartesiano/,
+    gen: [
+      () => { const [a, b, c] = pick([[3, 4, 5], [6, 8, 10], [5, 12, 13], [9, 12, 15], [8, 15, 17], [12, 16, 20]]), askH = Math.random() < .5;
+        return askH ? mcq(`Num triângulo retângulo, os catetos medem ${a} cm e ${b} cm. Quanto mede a hipotenusa?`, c + " cm", [(a + b) + " cm", (c + 1) + " cm", nf(Math.sqrt(a + b), 1) + " cm", (b - a) + " cm"], `h² = ${a}² + ${b}² = ${a * a} + ${b * b} = ${c * c}. h = √${c * c} = ${c} cm.`, () => rnd(4, 25) + " cm")
+          : mcq(`Uma escada de ${c} m está apoiada num muro, com o pé a ${a} m da parede. Até que altura do muro ela chega?`, b + " m", [(c - a) + " m", (c + a) + " m", nf(Math.sqrt(c * c + a * a), 1) + " m", (b + 1) + " m"], `${c}² = ${a}² + h² → ${c * c} = ${a * a} + h² → h² = ${b * b} → h = ${b} m.`, () => rnd(3, 25) + " m"); },
+      () => { const x = rnd(30, 80), y = rnd(20, 150 - x), z = 180 - x - y;
+        return mcq(`Dois ângulos de um triângulo medem ${x}° e ${y}°. Quanto mede o terceiro?`, z + "°", [(360 - x - y) + "°", (x + y) + "°", (90 - x) > 0 ? (90 - x) + "°" : (z + 10) + "°", (z - 10) + "°"], `A soma é 180°: 180 − ${x} − ${y} = ${z}°.`, () => rnd(10, 120) + "°"); },
+      () => { const n = pick([5, 6, 8, 9, 10, 12]), s = (n - 2) * 180, nome = { 5: "pentágono", 6: "hexágono", 8: "octógono", 9: "eneágono", 10: "decágono", 12: "dodecágono" }[n];
+        return mcq(`Quanto mede cada ângulo interno de um ${nome} regular (${n} lados)?`, nf(s / n) + "°", [nf(s) + "°", nf(360 / n) + "°", nf(180 / n) + "°", nf(s / n + 12) + "°"], `Soma dos ângulos: (${n} − 2) × 180° = ${s}°. Como é regular, cada um mede ${s} ÷ ${n} = ${nf(s / n)}°.`, () => rnd(60, 170) + "°"); }
+    ] },
+  { id: "med", t: "Perímetro, área, volume e unidades", u: "Grandezas e medidas",
+    saber: ["Perímetro é a volta toda (soma dos lados). Área do retângulo = base × altura.", "Volume do paralelepípedo (caixa) = comprimento × largura × altura.", "Volume do cilindro = π × raio² × altura (use π ≈ 3,14).", "1 dm³ = 1 litro e 1 m³ = 1 000 litros."],
+    ex: ["Uma caixa-d'água mede 2 m × 1 m × 1,5 m. Quantos litros cabem?", "Volume = 2 × 1 × 1,5 = 3 m³.", "3 × 1 000 = 3 000 litros."],
+    re: /volume|[aá]rea|per[ií]metro|medida|unidade|cilindro|cone|paralelep|capacidade|convers/,
+    gen: [
+      () => { const b = rnd(4, 20), h = rnd(3, 15), ap = Math.random() < .5;
+        return ap ? mcq(`Um terreno retangular mede ${b} m por ${h} m. Qual é a área?`, (b * h) + " m²", [(2 * (b + h)) + " m²", (b + h) + " m²", (b * h * 2) + " m²", (b * h + b) + " m²"], `Área = base × altura = ${b} × ${h} = ${b * h} m².`, () => rnd(20, 300) + " m²")
+          : mcq(`Quantos metros de cerca são precisos para cercar um terreno retangular de ${b} m por ${h} m?`, (2 * (b + h)) + " m", [(b * h) + " m", (b + h) + " m", (4 * b) + " m", (2 * (b + h) + 2) + " m"], `Perímetro = ${b} + ${h} + ${b} + ${h} = ${2 * (b + h)} m.`, () => rnd(10, 120) + " m"); },
+      () => { const c = rnd(2, 8) * 10, l = rnd(2, 6) * 10, a = rnd(2, 6) * 10, v = c * l * a / 1000;
+        return mcq(`Um aquário tem ${c} cm de comprimento, ${l} cm de largura e ${a} cm de altura. Quantos litros cabem nele?`, nf(v) + " L", [nf(v * 10) + " L", nf(c * l * a) + " L", nf(v / 10) + " L", nf((c + l + a)) + " L"], `Volume = ${c} × ${l} × ${a} = ${(c * l * a).toLocaleString("pt-BR")} cm³. Como 1 L = 1 000 cm³: ${nf(v)} L.`, () => nf(v + rnd(-20, 20)) + " L"); },
+      () => { const r = rnd(1, 5), h = rnd(2, 10), v = Math.round(3.14 * r * r * h * 100) / 100;
+        return mcq(`Uma lata cilíndrica tem raio de ${r} dm e altura de ${h} dm. Qual é o volume? (use π = 3,14)`, nf(v) + " dm³", [nf(3.14 * 2 * r * h) + " dm³", nf(3.14 * r * h) + " dm³", nf(r * r * h) + " dm³", nf(3.14 * (2 * r) ** 2 * h) + " dm³"], `V = π × r² × h = 3,14 × ${r * r} × ${h} = ${nf(v)} dm³ (ou ${nf(v)} litros).`, () => nf(v + rnd(-30, 30)) + " dm³"); },
+      () => { const kind = pick(["m-cm", "kg-g", "L-mL", "km-m"]), v = rnd(12, 95) / 10;
+        const [from, to, f] = { "m-cm": ["m", "cm", 100], "kg-g": ["kg", "g", 1000], "L-mL": ["L", "mL", 1000], "km-m": ["km", "m", 1000] }[kind];
+        return mcq(`Quanto é ${nf(v)} ${from} em ${to}?`, nf(v * f) + " " + to, [nf(v * f / 10) + " " + to, nf(v * f * 10) + " " + to, nf(v / f, 4) + " " + to, nf(v * 10) + " " + to], `1 ${from} = ${f.toLocaleString("pt-BR")} ${to}. ${nf(v)} × ${f.toLocaleString("pt-BR")} = ${nf(v * f)} ${to}.`, () => nf(v * f + rnd(-100, 100)) + " " + to); }
+    ] },
+  { id: "est", t: "Média, gráficos e tabelas", u: "Probabilidade e estatística",
+    saber: ["Média aritmética: some tudo e divida pela quantidade de valores.", "Moda é o valor que mais aparece; mediana é o do meio (com os valores em ordem).", "Amplitude = maior valor − menor valor.", "Em gráfico ou tabela, leia título, legenda e unidade antes de calcular."],
+    ex: ["Notas 6, 8, 7 e 9. Qual é a média?", "Soma: 6 + 8 + 7 + 9 = 30.", "30 ÷ 4 = 7,5."],
+    re: /m[eé]dia aritm|m[eé]dia e |gr[aá]fico|tabela|dados|amplitude/,
+    gen: [
+      () => { const n = rnd(4, 6); let xs = Array.from({ length: n }, () => rnd(4, 10)); const s = xs.reduce((a, b) => a + b, 0), m = s / n;
+        return mcq(`As notas de Rafa foram ${xs.join(", ")}. Qual é a média?`, nf(m), [nf(s), nf((Math.max(...xs) + Math.min(...xs)) / 2), nf(s / (n - 1)), nf(m + 0.5)], `Soma = ${s}. Média = ${s} ÷ ${n} = ${nf(m)}.`, () => nf(m + rnd(-20, 20) / 10)); },
+      () => { const xs = Array.from({ length: 5 }, () => rnd(12, 38)), r = Math.max(...xs) - Math.min(...xs);
+        return mcq(`As temperaturas (°C) de uma semana foram ${xs.join(", ")}. Qual foi a amplitude?`, r + " °C", [Math.max(...xs) + " °C", (Math.max(...xs) + Math.min(...xs)) + " °C", nf(xs.reduce((a, b) => a + b, 0) / 5) + " °C", (r + 2) + " °C"], `Amplitude = maior − menor = ${Math.max(...xs)} − ${Math.min(...xs)} = ${r} °C.`, () => rnd(1, 30) + " °C"); },
+      () => { const target = pick([6, 7]), a = rnd(4, 9), b = rnd(4, 9), need = target * 3 - a - b;
+        if (need < 0 || need > 10) return REF[8].gen[0]();
+        return mcq(`Para passar, Júlia precisa de média ${target} em três provas. Ela tirou ${a} e ${b}. Quanto precisa tirar na terceira?`, need, [target, need + 1, target * 2 - a, Math.max(0, need - 2)], `Para média ${target} em 3 provas, a soma deve ser ${target} × 3 = ${target * 3}. Falta ${target * 3} − ${a} − ${b} = ${need}.`, () => rnd(0, 10)); }
+    ] },
+  { id: "prob", t: "Contagem e probabilidade", u: "Probabilidade e estatística",
+    saber: ["Princípio multiplicativo: 3 camisetas e 4 calças dão 3 × 4 = 12 combinações.", "Probabilidade = casos favoráveis ÷ casos possíveis.", "Pódio (1º, 2º e 3º) com 8 atletas: 8 × 7 × 6 = 336 resultados (a ordem importa).", "Probabilidade vai de 0 (impossível) a 1 (certeza): 1/4 = 0,25 = 25%."],
+    ex: ["Numa urna há 3 bolas azuis e 5 vermelhas. Qual a chance de sortear azul?", "Casos favoráveis: 3. Possíveis: 3 + 5 = 8.", "Probabilidade = 3/8 (37,5%)."],
+    re: /combinat|contagem|arranjo|multiplicativo|probab/,
+    gen: [
+      () => { const a = rnd(2, 6), b = rnd(2, 5), c = rnd(2, 4), r = a * b * c;
+        return mcq(`Lucas tem ${a} camisetas, ${b} bermudas e ${c} pares de tênis. De quantas formas diferentes ele pode se vestir com uma peça de cada?`, r, [a + b + c, a * b + c, r * 2, a * b], `Princípio multiplicativo: ${a} × ${b} × ${c} = ${r}.`, () => r + rnd(-10, 10)); },
+      () => { const az = rnd(2, 9), vm = rnd(2, 9), am = rnd(1, 6), t = az + vm + am;
+        return mcq(`Uma urna tem ${az} bolas azuis, ${vm} vermelhas e ${am} amarelas. Qual é a probabilidade de sortear uma bola vermelha?`, frac(vm, t), [frac(vm, t - vm), frac(1, 3), frac(az, t), frac(vm, az + am)], `Favoráveis: ${vm}. Possíveis: ${az} + ${vm} + ${am} = ${t}. Probabilidade = ${vm}/${t}${frac(vm, t) !== vm + "/" + t ? " = " + frac(vm, t) : ""}.`, () => frac(rnd(1, t - 1), t)); },
+      () => { const n = rnd(5, 10), r = n * (n - 1) * (n - 2);
+        return mcq(`Numa corrida com ${n} atletas, de quantas formas diferentes pode ficar o pódio (1º, 2º e 3º lugares)?`, r, [n * 3, n * n * n, r / 6, n * (n - 1)], `Para o 1º lugar há ${n} opções, para o 2º sobram ${n - 1} e para o 3º, ${n - 2}: ${n} × ${n - 1} × ${n - 2} = ${r}.`, () => r + rnd(-30, 30)); }
+    ] }
+];
+let refOpen = null, refQ = null, refAns = null, refOf = null;
+function refStats(p, id) { const s = (p && p.ref && p.ref[id]) || [0, 0]; return { n: s[0], ok: s[1] }; }
+function refOfficial(t) { return allOf().filter(q => q.area === "Matemática" && t.re.test((q.tema || "").toLowerCase())); }
+function renderReforco() {
+  const p = me();
+  $("#refGrid").innerHTML = REF.map((t, i) => { const s = refStats(p, t.id), nOf = refOfficial(t).length;
+    return `<button type="button" class="ref-topic" data-i="${i}" aria-pressed="${refOpen === i}"><span class="eyebrow">${t.u}</span><b>${t.t}</b><small>${s.n ? `${s.n} exercícios · ${Math.round(s.ok / s.n * 100)}% de acerto` : "ainda não praticou"}${nOf ? ` · ${nOf} de provas` : ""}</small></button>`; }).join("");
+  $$("#refGrid .ref-topic").forEach(b => b.addEventListener("click", () => openTopic(+b.dataset.i)));
+}
+function openTopic(i) {
+  refOpen = i; const t = REF[i]; renderReforco(); hush();
+  const nOf = refOfficial(t).length;
+  $("#refBox").hidden = false;
+  $("#refBox").innerHTML = `<div class="ref-head"><div><p class="eyebrow">${t.u}</p><h3>${t.t}</h3></div><button type="button" class="btn ghost small" id="refClose">Fechar</button></div>
+    <div class="ref-learn"><div><h4>O que saber</h4><ul>${t.saber.map(x => `<li>${x}</li>`).join("")}</ul></div>
+    <div class="ref-ex"><h4>Exemplo resolvido</h4><p><b>${t.ex[0]}</b></p><ol>${t.ex.slice(1).map(x => `<li>${x}</li>`).join("")}</ol></div></div>
+    <div class="row ref-tabs"><button type="button" class="pill" id="refTrain" aria-pressed="true">Exercícios de treino</button>${nOf ? `<button type="button" class="pill" id="refOfBtn" aria-pressed="false">Questões de provas anteriores (${nOf})</button>` : ""}</div>
+    <div id="refPlay"></div><div class="path" id="refPath" hidden></div><div id="refOfPlay"></div>`;
+  $("#refClose").addEventListener("click", () => { refOpen = null; $("#refBox").hidden = true; hush(); renderReforco(); $("#reforco").scrollIntoView({ block: "start" }); });
+  $("#refTrain").addEventListener("click", () => { $("#refTrain").setAttribute("aria-pressed", "true"); $("#refOfBtn") && $("#refOfBtn").setAttribute("aria-pressed", "false"); $("#refPath").hidden = true; $("#refOfPlay").innerHTML = ""; nextRefQ(); });
+  $("#refOfBtn") && $("#refOfBtn").addEventListener("click", () => {
+    $("#refOfBtn").setAttribute("aria-pressed", "true"); $("#refTrain").setAttribute("aria-pressed", "false"); $("#refPlay").innerHTML = ""; $("#refPath").hidden = false;
+    const list = refOfficial(t).sort(() => Math.random() - .5).slice(0, 10);
+    refOf = list.map(() => null);
+    mountPlayer({ box: $("#refOfPlay"), pathBox: $("#refPath"), list, ans: refOf, title: `${t.t}: provas anteriores`, again: () => $("#refOfBtn").click(), againLabel: "Fazer outras" });
+  });
+  nextRefQ();
+  $("#refBox").scrollIntoView({ block: "start" });
+}
+function nextRefQ() {
+  const t = REF[refOpen]; refQ = pick(t.gen)(); refAns = null;
+  const s = refStats(me(), t.id);
+  $("#refPlay").innerHTML = `<article class="player" data-area="Matemática"><div class="qhead"><span class="num">Treino · ${t.t}</span><span class="chip" data-area="Matemática">${s.n} feitos${s.n ? ` · ${Math.round(s.ok / s.n * 100)}%` : ""}</span></div>
+    <p class="stem">${esc(refQ.stem)}</p><div class="opts">${refQ.opts.map((o, j) => `<button type="button" class="opt" data-o="${j}"><span class="bub">${L[j]}</span><span>${esc(o)}</span></button>`).join("")}</div>
+    <div class="fb"></div><div class="player-foot" hidden><span class="tip">Os exercícios mudam a cada vez.</span><button type="button" class="btn next">Próximo exercício →</button></div></article>`;
+  const art = $("#refPlay .player");
+  art.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => {
+    if (refAns !== null) return; refAns = +b.dataset.o; const ok = refAns === refQ.c;
+    art.querySelectorAll(".opt").forEach((x, j) => { x.disabled = true; if (j === refQ.c) x.classList.add("right"); else if (j === refAns) x.classList.add("wrong"); });
+    const p = me(); if (p) { p.ref = p.ref || {}; const v = p.ref[t.id] || [0, 0]; v[0]++; if (ok) v[1]++; p.ref[t.id] = v; save(); art.querySelector(".qhead .chip").textContent = `${v[0]} feitos · ${Math.round(v[1] / v[0] * 100)}%`; }
+    const say = ok ? pick(PRAISE) : pick(OOPS);
+    art.querySelector(".fb").innerHTML = `<div class="feedback ${ok ? "ok" : "no"}"><div class="owl"></div><div class="bubble"><p class="say">${say}</p>${ok ? "" : `<p><span class="lbl">Você marcou a ${L[refAns]}. A resposta certa é a ${L[refQ.c]}: ${esc(refQ.opts[refQ.c])}.</span></p>`}<p><b>Como resolver:</b> ${esc(refQ.why)}</p></div></div>`;
+    put(art.querySelector(".fb .owl"), ok ? "" : "think");
+    speak(`${say} ${ok ? "" : `A resposta certa é a letra ${L[refQ.c]}.`} ${refQ.why}`);
+    const foot = art.querySelector(".player-foot"); foot.hidden = false;
+    foot.querySelector(".next").addEventListener("click", () => { hush(); nextRefQ(); });
+    renderReforco();
+  }));
+}
 
 /* Virada do dia: se o site ficar aberto, a contagem, a meta e a trilha do dia se atualizam sozinhas. */
 let shownDay = dayKey();
@@ -1221,7 +1450,7 @@ Promise.all([
   OWN.forEach(o => { const q = ownToQ(o); QMAP[q.id] = q; });
   allOf().forEach(q => { QMAP[q.id] = q; });
   $("#ofTotal").textContent = EXAMS.reduce((s, e) => s + e.q.length, 0);
-  renderAreas(); renderEditions(); renderKids();
+  renderAreas(); renderEditions(); renderKids(); renderReforco();
   if (me()) afterLogin(); else openGate();
 }).catch(() => { $("#player").innerHTML = `<p class="note">Não foi possível carregar as questões agora. Recarregue a página.</p>`; });
 </script>
