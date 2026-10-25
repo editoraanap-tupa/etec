@@ -440,6 +440,47 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
 .seg button { flex: 1 1 0; min-width: 0; border: 2px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 8px 10px; font-family: var(--f-display); font-weight: 700; font-size: .92rem; cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
 #vPick { font: inherit; font-size: .95rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; width: 100%; min-width: 0; }
+/* ===== interatividade ===== */
+.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 90; }
+.toasts { position: fixed; z-index: 95; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: grid; gap: 8px; width: min(420px, calc(100vw - 24px)); pointer-events: none; }
+.toast { background: var(--sheet); color: var(--ink); border: 2px solid var(--brand); border-radius: 16px; padding: 12px 16px; box-shadow: 0 12px 30px rgba(20,20,60,.25); font-size: .98rem; animation: toastIn .35s cubic-bezier(.2,1.4,.4,1); }
+.toast.gold { border-color: var(--sun); background: linear-gradient(135deg, var(--sun-wash), var(--sheet)); }
+.toast.hot { border-color: #ff6a3d; }
+.toast.out { opacity: 0; transform: translateY(10px); transition: .4s; }
+.t-ic { font-size: 1.4rem; vertical-align: middle; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(20px) scale(.95); } }
+.combo { font-family: var(--f-display); font-weight: 800; font-size: .85rem; color: #fff; background: linear-gradient(135deg, #ff6a3d, #ffb020); padding: 3px 10px; border-radius: 999px; animation: comboIn .5s cubic-bezier(.2,1.6,.4,1); }
+@keyframes comboIn { from { transform: scale(.3) rotate(-10deg); opacity: 0; } }
+.opt { transition: transform .12s, box-shadow .12s, border-color .12s; }
+.opt:not(:disabled):hover { transform: translateY(-2px); border-color: var(--brand); box-shadow: 0 6px 16px rgba(53,41,214,.15); }
+.opt:not(:disabled):active { transform: scale(.98); }
+.opt.pop { animation: pop .45s cubic-bezier(.2,1.6,.4,1); }
+.opt.wrong { animation: shake .4s; }
+@keyframes pop { 40% { transform: scale(1.04); } }
+@keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+.btn { transition: transform .12s, box-shadow .12s, filter .12s; }
+.btn:hover { transform: translateY(-1px); filter: brightness(1.06); box-shadow: 0 8px 20px rgba(53,41,214,.25); }
+.btn:active { transform: scale(.97); }
+.feedback .owl { animation: hop .6s cubic-bezier(.2,1.6,.4,1); }
+@keyframes hop { 30% { transform: translateY(-10px) rotate(-6deg); } 60% { transform: translateY(0) rotate(3deg); } }
+.level { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 4px 10px; margin-top: 10px; max-width: 520px; }
+.lv-badge { font-family: var(--f-display); font-weight: 800; font-size: .8rem; color: #fff; background: linear-gradient(135deg, #3529d6, #7b2ff2); padding: 4px 10px; border-radius: 999px; }
+.lv-name { font-family: var(--f-display); font-weight: 800; color: var(--brand); }
+.lv-bar { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.lv-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--sun), #ff6a3d); transition: width .8s cubic-bezier(.2,1,.3,1); }
+.lv-xp { grid-column: 1 / -1; font-size: .85rem; color: var(--ink-soft); }
+.medals { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.medal { display: grid; justify-items: center; text-align: center; gap: 2px; padding: 12px 8px; border-radius: 14px; border: 2px dashed var(--line); color: var(--ink-soft); background: var(--bg); }
+.medal .m-ic { font-size: 1.8rem; filter: grayscale(1); opacity: .6; }
+.medal b { font-family: var(--f-display); font-size: .9rem; } .medal small { font-size: .74rem; line-height: 1.3; }
+.medal.got { border: 2px solid var(--sun); background: linear-gradient(160deg, var(--sun-wash), var(--sheet)); color: var(--ink); }
+.medal.got .m-ic { filter: none; opacity: 1; animation: pop .6s; }
+@media (max-width: 520px) { .medals { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; } .medal { padding: 8px 4px; } .medal .m-ic { font-size: 1.4rem; } .medal b { font-size: .78rem; } .medal small { display: none; } }
+.ref-topic, .stat, .pv-card { transition: transform .15s, box-shadow .15s; }
+.ref-topic:hover, .stat:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(53,41,214,.14); }
+.reveal { opacity: 0; transform: translateY(14px); }
+.reveal.in { opacity: 1; transform: none; transition: opacity .5s ease, transform .5s ease; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .reveal { opacity: 1; transform: none; } }
 </style>
 </head>
 <body>
@@ -485,6 +526,7 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
 <div class="voice-pop" id="voicePop" hidden role="dialog" aria-label="Voz do Sabi">
   <div class="vp-head"><b>Voz do Sabi</b><button type="button" class="vp-x" id="vClose" aria-label="Fechar">×</button></div>
   <label class="vp-on"><input type="checkbox" id="vOn"> Ler as respostas em voz alta</label>
+  <label class="vp-on"><input type="checkbox" id="vSfx"> Sons de acerto e erro</label>
   <div class="vp-grp"><span class="eyebrow">Tipo de voz</span><div class="seg" id="vGender"><button type="button" data-v="f">Feminina</button><button type="button" data-v="m">Masculina</button></div></div>
   <div class="vp-grp"><span class="eyebrow">Velocidade</span><div class="seg" id="vRate"><button type="button" data-v="0.8">Devagar</button><button type="button" data-v="0.95">Normal</button><button type="button" data-v="1.15">Rápida</button></div></div>
   <div class="vp-grp"><span class="eyebrow">Voz do aparelho</span><select id="vPick"></select></div>
@@ -501,6 +543,7 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
         <p class="eyebrow">Vestibulinho Etec · Centro Paula Souza · SP</p>
         <h1 id="helloTitle">Sua vaga na Etec começa <em>aqui</em>.</h1>
         <p id="helloSub">Uma trilha de questões por dia, corrigida na hora pelo Sabi.</p>
+        <div class="level" id="levelBox" hidden></div>
       </div>
     </div>
     <div class="stats">
@@ -534,6 +577,7 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
       <div class="journey"><ol id="journey"></ol></div>
     </div>
     <div class="card" style="display:grid;gap:12px"><h3>Seu desempenho</h3><div id="myProgress"></div></div>
+    <div class="card" style="display:grid;gap:12px"><div class="row" style="justify-content:space-between"><h3>Suas medalhas</h3><span class="tip" id="medalCount"></span></div><div class="medals" id="medals"></div></div>
     <div hidden><div id="chart"></div><div id="chartDays"></div><div id="areaBars"></div><ul id="attn"></ul><p id="advice"></p></div>
   </section>
 
@@ -616,6 +660,7 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
   </footer>
 </main>
 
+<div class="toasts" id="toasts" aria-live="polite"></div>
 <div class="gate" id="gate" hidden>
   <div class="gate-card" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
     <div class="owl" id="gateSabi"></div>
@@ -757,7 +802,7 @@ function sayable(text) {
 function hush() { try { speechSynthesis.cancel(); } catch (e) {} }
 function renderVoice() { $("#voiceBtn").setAttribute("aria-pressed", DB.voice); $("#voiceBtn .wave").style.display = DB.voice ? "" : "none"; }
 function renderVoicePop() {
-  $("#vOn").checked = !!DB.voice;
+  $("#vOn").checked = !!DB.voice; $("#vSfx").checked = DB.sfx !== false;
   $$("#vGender button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === DB.vgender));
   $$("#vRate button").forEach(b => b.setAttribute("aria-pressed", Number(b.dataset.v) === DB.vrate));
   const sel = $("#vPick");
@@ -779,6 +824,7 @@ $("#voiceBtn").addEventListener("click", e => { e.stopPropagation(); openVoicePo
 $("#vClose").addEventListener("click", () => openVoicePop(false));
 $("#voicePop").addEventListener("click", e => e.stopPropagation());
 document.addEventListener("click", () => { if (!$("#voicePop").hidden) openVoicePop(false); });
+$("#vSfx").addEventListener("change", e => { DB.sfx = e.target.checked; save(); if (DB.sfx) chime(true); });
 $("#vOn").addEventListener("change", e => { DB.voice = e.target.checked; save(); renderVoice(); if (DB.voice) speak("Voz ligada."); else hush(); });
 $$("#vGender button").forEach(b => b.addEventListener("click", () => { DB.vgender = b.dataset.v; DB.vname = ""; voiceChanged(); }));
 $$("#vRate button").forEach(b => b.addEventListener("click", () => { DB.vrate = Number(b.dataset.v); voiceChanged(); }));
@@ -890,6 +936,7 @@ function renderPanel() {
   const none = per.filter(x => !x.n).map(x => x.a);
   $("#advice").textContent = !p.log.length ? "A projeção aparece depois das primeiras questões." : weak && weak.gain ? `Foque em ${weak.a}: chegando a 80% de acerto nessa área, você ganha cerca de ${weak.gain} acertos na prova. A trilha já traz mais questões dela.` + (none.length ? ` Ainda falta treinar ${none.join(", ")}.` : "") : none.length ? `Você ainda não treinou ${none.join(", ")}.` : "Responda pelo menos 3 questões de cada área para ver a recomendação.";
   $("#myProgress").innerHTML = parentView(p, true);
+  renderLevel(); renderMedals();
 }
 
 /* ===== questões normalizadas ===== */
@@ -997,6 +1044,7 @@ function mountPlayer(cfg) {
     const p = me(); foot.querySelector(".tip").textContent = p ? `Hoje: ${(p.days[dayKey()] || { q: 0 }).q}/${p.goal} questões` : "";
     foot.querySelector(".next").addEventListener("click", () => { hush(); mountPlayer(cfg); pathBox.scrollIntoView({ block: "start" }); });
     renderPanel(); renderKids();
+    celebrate(pick === q.c, art, true);
   }));
 }
 const PRAISE = ["Acertou!", "Mandou bem!", "Isso aí!", "Muito bem!", "Certinho!"];
@@ -1224,7 +1272,113 @@ $("#gateForm").addEventListener("submit", e => {
 });
 $("#gateFamily").addEventListener("click", () => { $("#gate").hidden = true; renderKids(); $("#familia").scrollIntoView({ block: "start" }); });
 $("#whoBtn").addEventListener("click", openGate);
-function afterLogin() { renderPanel(); startTrail(); renderKids(); renderReforco(); if (EXAMS.length) openExam(ofKey || EXAMS[0].id, false); }
+function afterLogin() { combo = 0; checkMedals(me()); renderPanel(); startTrail(); renderKids(); renderReforco(); setTimeout(() => { $$(".stat b").forEach(countUp); revealOnScroll(); }, 60); if (EXAMS.length) openExam(ofKey || EXAMS[0].id, false); }
+
+/* ===== diversão: confete, sequência de acertos, pontos, nível e medalhas ===== */
+const calm = () => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { return false; } };
+function confetti(n = 80, from) {
+  if (calm()) return;
+  const cv = document.createElement("canvas"); cv.className = "confetti"; document.body.append(cv);
+  const W = cv.width = innerWidth, H = cv.height = innerHeight, cx = cv.getContext("2d");
+  const cols = ["#3529d6", "#7b2ff2", "#ffa800", "#0f9d47", "#e8303a", "#1a56f0", "#ff6fb5"];
+  const ox = from ? from.x : W / 2, oy = from ? from.y : H / 3;
+  const ps = Array.from({ length: n }, () => ({ x: ox, y: oy, vx: (Math.random() - .5) * 12, vy: -Math.random() * 11 - 3, r: Math.random() * 6 + 4, c: cols[Math.floor(Math.random() * cols.length)], a: Math.random() * 6, va: (Math.random() - .5) * .4 }));
+  let t = 0;
+  (function step() {
+    cx.clearRect(0, 0, W, H); t++;
+    ps.forEach(p => { p.vy += .35; p.x += p.vx; p.y += p.vy; p.a += p.va; cx.save(); cx.translate(p.x, p.y); cx.rotate(p.a); cx.fillStyle = p.c; cx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); cx.restore(); });
+    if (t < 110) requestAnimationFrame(step); else cv.remove();
+  })();
+}
+let actx = null;
+function chime(ok) {
+  if (DB.sfx === false) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const notes = ok ? [660, 880] : [330, 247], t0 = actx.currentTime;
+    notes.forEach((f, i) => { const o = actx.createOscillator(), g = actx.createGain(); o.type = ok ? "triangle" : "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, t0 + i * .11); g.gain.exponentialRampToValueAtTime(.18, t0 + i * .11 + .02); g.gain.exponentialRampToValueAtTime(.0001, t0 + i * .11 + .22);
+      o.connect(g).connect(actx.destination); o.start(t0 + i * .11); o.stop(t0 + i * .11 + .25); });
+  } catch (e) {}
+}
+function toast(html, cls = "") {
+  const box = $("#toasts"); if (!box) return;
+  const el = document.createElement("div"); el.className = "toast " + cls; el.innerHTML = html; box.append(el);
+  setTimeout(() => el.classList.add("out"), 3200); setTimeout(() => el.remove(), 3700);
+}
+/* Sequência de acertos (seguidos) da sessão atual. */
+let combo = 0;
+function celebrate(ok, art, trail) {
+  chime(ok);
+  combo = ok ? combo + 1 : 0;
+  if (art) {
+    const r = art.querySelector(".opt.right"); if (r) { r.classList.add("pop"); }
+    if (ok && combo >= 2) { const c = document.createElement("span"); c.className = "combo"; c.textContent = `🔥 ${combo} seguidas!`; art.querySelector(".qhead")?.append(c); }
+    if (ok && r) { const b = r.getBoundingClientRect(); confetti(combo >= 5 ? 90 : 26, { x: b.left + 30, y: b.top + b.height / 2 }); }
+  }
+  if (ok && combo > 0 && combo % 5 === 0) toast(`🔥 <b>${combo} acertos seguidos!</b> Você está pegando fogo.`, "hot");
+  const p = me();
+  if (p) {
+    const q = (p.days[dayKey()] || { q: 0 }).q;
+    if (trail && q === p.goal) { setTimeout(() => confetti(160), 250); toast(`🏆 <b>Meta do dia cumprida!</b> ${p.goal} questões. Parabéns, ${esc(p.name)}!`, "gold"); speak(`Parabéns, ${p.name}! Você cumpriu a meta de hoje.`); }
+    checkMedals(p);
+  }
+  renderLevel();
+}
+/* Pontos (XP): 10 por acerto, 2 por tentativa, 5 por acerto no reforço. */
+function xpOf(p) {
+  const ok = p.log.filter(x => x[2]).length, ref = Object.values(p.ref || {}).reduce((s, v) => s + v[1] * 5 + (v[0] - v[1]) * 1, 0);
+  return ok * 10 + p.log.length * 2 + ref;
+}
+const LEVELS = ["Iniciante", "Aprendiz", "Estudante", "Esforçado", "Dedicado", "Craque", "Fera", "Mestre", "Lenda da Etec"];
+function levelOf(xp) { let lv = 0; while (lv < LEVELS.length - 1 && xp >= 150 * (lv + 1) * (lv + 2) / 2) lv++; const lo = 150 * lv * (lv + 1) / 2, hi = 150 * (lv + 1) * (lv + 2) / 2; return { lv, name: LEVELS[lv], lo, hi, pct: lv === LEVELS.length - 1 ? 100 : Math.round((xp - lo) / (hi - lo) * 100) }; }
+function renderLevel() {
+  const p = me(), box = $("#levelBox"); if (!box) return;
+  if (!p) { box.hidden = true; return; }
+  const xp = xpOf(p), L0 = levelOf(xp); box.hidden = false;
+  box.innerHTML = `<span class="lv-badge">Nível ${L0.lv + 1}</span><span class="lv-name">${L0.name}</span><span class="lv-bar"><i style="width:${L0.pct}%"></i></span><span class="lv-xp">${xp.toLocaleString("pt-BR")} pontos${L0.lv < LEVELS.length - 1 ? ` · faltam ${(L0.hi - xp).toLocaleString("pt-BR")} para ${LEVELS[L0.lv + 1]}` : ""}</span>`;
+  if (p.lv !== undefined && L0.lv > p.lv) { confetti(140); toast(`⭐ <b>Subiu de nível!</b> Agora você é ${L0.name}.`, "gold"); speak(`Você subiu de nível! Agora você é ${L0.name}.`); }
+  if (p.lv !== L0.lv) { p.lv = L0.lv; save(); }
+}
+function maxRun(log) { let m = 0, c = 0; log.forEach(x => { c = x[2] ? c + 1 : 0; if (c > m) m = c; }); return m; }
+const MEDALS = [
+  { id: "first", i: "🌱", t: "Primeiros passos", d: "Responder a 1ª questão", ok: p => p.log.length >= 1 },
+  { id: "goal", i: "🎯", t: "Meta batida", d: "Cumprir a meta de um dia", ok: p => Object.values(p.days).some(d => d.q >= p.goal) },
+  { id: "s3", i: "🔥", t: "3 dias seguidos", d: "Meta cumprida 3 dias seguidos", ok: p => streakOf(p) >= 3 },
+  { id: "s7", i: "🚀", t: "Semana perfeita", d: "Meta cumprida 7 dias seguidos", ok: p => streakOf(p) >= 7 },
+  { id: "run10", i: "🎳", t: "Mira certeira", d: "10 acertos seguidos", ok: p => maxRun(p.log) >= 10 },
+  { id: "q100", i: "💯", t: "Cem questões", d: "Responder 100 questões", ok: p => p.log.length >= 100 },
+  { id: "q500", i: "🏅", t: "Quinhentas", d: "Responder 500 questões", ok: p => p.log.length >= 500 },
+  { id: "q1000", i: "🏆", t: "Mil questões", d: "Responder 1 000 questões", ok: p => p.log.length >= 1000 },
+  { id: "all4", i: "🧭", t: "Explorador", d: "20 questões em cada área", ok: p => AREAS.every(a => p.log.filter(x => x[1] === a).length >= 20) },
+  { id: "ref", i: "🧮", t: "Reforço em dia", d: "30 exercícios no Reforço de Matemática", ok: p => Object.values(p.ref || {}).reduce((s, v) => s + v[0], 0) >= 30 }
+];
+function checkMedals(p) {
+  p.medals = p.medals || [];
+  const fresh = MEDALS.filter(m => !p.medals.includes(m.id) && m.ok(p));
+  if (!fresh.length) return;
+  fresh.forEach(m => p.medals.push(m.id)); save();
+  fresh.forEach((m, k) => setTimeout(() => { toast(`<span class="t-ic">${m.i}</span> <b>Nova medalha: ${m.t}</b><br>${m.d}`, "gold"); confetti(70); }, 600 + k * 900));
+  speak(`Nova medalha: ${fresh[0].t}!`);
+  renderMedals();
+}
+function renderMedals() {
+  const p = me(), box = $("#medals"); if (!box || !p) return;
+  const got = new Set(p.medals || []);
+  box.innerHTML = MEDALS.map(m => `<div class="medal ${got.has(m.id) ? "got" : ""}" title="${m.d}"><span class="m-ic">${got.has(m.id) ? m.i : "🔒"}</span><b>${m.t}</b><small>${m.d}</small></div>`).join("");
+  $("#medalCount").textContent = `${got.size} de ${MEDALS.length}`;
+}
+/* Números que sobem contando e cartões que aparecem ao rolar. */
+function countUp(el) {
+  if (calm()) return; const m = el.textContent.match(/^(\d+)(.*)$/); if (!m) return;
+  const end = +m[1], rest = m[2]; if (end < 2) return; const t0 = performance.now();
+  (function f(t) { const k = Math.min(1, (t - t0) / 700); el.textContent = Math.round(end * (1 - Math.pow(1 - k, 3))) + rest; if (k < 1) requestAnimationFrame(f); })(t0);
+}
+function revealOnScroll() {
+  if (calm() || !("IntersectionObserver" in window)) return;
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .12 });
+  $$(".card, .stat, .ref-topic, .pv-card, .medal").forEach(el => { if (!el.classList.contains("in")) { el.classList.add("reveal"); io.observe(el); } });
+}
 
 /* ===== reforço de matemática =====
    Temas de Matemática do Ensino Fundamental II (BNCC), que é o que o edital do Vestibulinho cobra.
@@ -1427,7 +1581,7 @@ function nextRefQ() {
     speak(`${say} ${ok ? "" : `A resposta certa é a letra ${L[refQ.c]}.`} ${refQ.why}`);
     const foot = art.querySelector(".player-foot"); foot.hidden = false;
     foot.querySelector(".next").addEventListener("click", () => { hush(); nextRefQ(); });
-    renderReforco();
+    renderReforco(); celebrate(ok, art, false);
   }));
 }
 
