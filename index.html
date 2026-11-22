@@ -215,6 +215,8 @@ body.talking .sabi:not(.mini) .s-beak { animation: sTalk .18s ease-in-out infini
 
 .player { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; border-top: 6px solid var(--area, var(--brand)); }
 .player .qhead { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
+.player .qhead .row { flex-wrap: wrap; min-width: 0; }
+.chip { max-width: 100%; white-space: normal; }
 .player .num { font-family: var(--f-mono); font-weight: 600; color: var(--area, var(--brand)); }
 .ctx { background: var(--bg); border-left: 4px solid var(--area, var(--brand)); padding: 12px 14px; border-radius: 0 10px 10px 0; font-size: .97rem; }
 .stem { font-size: 1.05rem; }
@@ -496,6 +498,56 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
 .ref-topic:hover, .stat:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(53,41,214,.14); }
 .reveal { opacity: 0; transform: translateY(14px); }
 .reveal.in { opacity: 1; transform: none; transition: opacity .5s ease, transform .5s ease; }
+/* ===== reta final ===== */
+.reta { position: relative; overflow: hidden; display: grid; gap: 10px; margin-block: 18px 14px; padding: 18px 20px; border-radius: var(--radius); color: #fff;
+  background: radial-gradient(120% 140% at 100% 0%, #ff7a3d 0%, transparent 55%), linear-gradient(135deg, #3529d6, #7b2ff2 70%); box-shadow: 0 16px 36px -18px rgba(53,41,214,.7); }
+.reta.done { background: radial-gradient(120% 140% at 100% 0%, #ffd23d 0%, transparent 55%), linear-gradient(135deg, #0f9d47, #1a56f0 80%); }
+.reta-top { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; }
+.reta-tag { display: inline-block; font-family: var(--f-display); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .8rem; padding: 4px 10px; border-radius: 99px; background: #ffa800; color: #17203b; animation: retaPulse 2s ease-in-out infinite; }
+.reta-when { font-size: .9rem; opacity: .9; }
+.reta-h { font-family: var(--f-display); font-size: clamp(1.5rem, 5vw, 2.1rem); font-weight: 800; line-height: 1.1; color: #fff; }
+.reta-clock { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 420px; }
+.reta-clock span { display: grid; justify-items: center; padding: 8px 4px; border-radius: 12px; background: rgba(255,255,255,.16); }
+.reta-clock b { font-family: var(--f-display); font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.reta-clock small { font-size: .75rem; opacity: .9; }
+.reta-today { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px 10px; max-width: 520px; font-size: .9rem; }
+.reta-bar.hit i { background: linear-gradient(90deg, #6dffa8, #2fd37a); }
+.reta.short { background: radial-gradient(120% 140% at 100% 0%, #ffb020 0%, transparent 55%), linear-gradient(135deg, #c62828, #7b2ff2 85%); }
+.reta-today b { font-family: var(--f-display); }
+.reta-bar { height: 12px; border-radius: 99px; background: rgba(255,255,255,.22); overflow: hidden; }
+.reta-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #ffd23d, #ffa800); transition: width .6s; }
+.reta-msg { font-size: 1rem; }
+.reta-sum { font-size: .9rem; opacity: .95; }
+.reta-days { display: flex; flex-wrap: wrap; gap: 6px; }
+.rd { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; font-size: .78rem; font-weight: 700; background: rgba(255,255,255,.14); color: rgba(255,255,255,.75); border: 2px solid transparent; }
+.rd.ok { background: #ffc93d; color: #17203b; font-size: 1rem; animation: pop .6s; }
+.rd.now { border-color: #fff; color: #fff; }
+.rd.mid { background: rgba(255,255,255,.3); color: #fff; }
+.rd.miss { opacity: .5; }
+@keyframes retaPulse { 50% { box-shadow: 0 0 0 6px rgba(255,168,0,.3); } }
+.win { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; background: rgba(9,12,26,.6); backdrop-filter: blur(3px); }
+.win[hidden] { display: none; }
+.win-card { width: min(440px, 100%); display: grid; gap: 10px; justify-items: center; text-align: center; padding: 24px 20px; border-radius: 22px; color: #fff; background: linear-gradient(150deg, #3529d6, #7b2ff2); box-shadow: 0 30px 60px -20px rgba(0,0,0,.6); animation: winIn .5s cubic-bezier(.2,1.5,.4,1); }
+.win-card .owl { width: 110px; }
+.win-card h2 { font-family: var(--f-display); font-size: 1.7rem; font-weight: 800; color: #fff; }
+.win-card .reta-days { justify-content: center; }
+@keyframes winIn { from { transform: scale(.6); opacity: 0; } }
+.balloons { position: fixed; inset: 0; z-index: 90; pointer-events: none; overflow: hidden; }
+.balloon { position: absolute; bottom: -120px; width: 54px; height: 66px; border-radius: 50% 50% 48% 52% / 58% 58% 42% 42%; background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.65) 0 8%, transparent 9%), var(--c); box-shadow: inset -6px -8px 0 rgba(0,0,0,.12);
+  animation-name: balloonUp, balloonSway; animation-timing-function: ease-in, ease-in-out; animation-iteration-count: 1, infinite; animation-direction: normal, alternate; animation-fill-mode: forwards, none; }
+.balloon::after { content: ""; position: absolute; left: 50%; top: 100%; width: 2px; height: 60px; background: rgba(120,120,140,.7); transform: translateX(-50%); }
+.balloon::before { content: ""; position: absolute; left: 50%; bottom: -6px; border: 6px solid transparent; border-bottom-color: var(--c); transform: translateX(-50%); }
+@keyframes balloonUp { to { bottom: 115vh; } }
+@keyframes balloonSway { from { margin-left: -14px; } to { margin-left: 14px; } }
+.win.scold .win-card { background: linear-gradient(150deg, #c62828, #ff6a00); animation: winIn .5s cubic-bezier(.2,1.5,.4,1), scoldShake .5s .5s 3; }
+.win.scold .reta-tag { background: #fff; color: #c62828; animation: alarm .25s infinite alternate; }
+.win.scold .owl { animation: scoldOwl .9s ease-in-out infinite; }
+.win.scold #winOk { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.7); box-shadow: none; }
+#winMore, #winOk { width: 100%; }
+@keyframes scoldShake { 20%, 60% { transform: translateX(-10px) rotate(-1deg); } 40%, 80% { transform: translateX(10px) rotate(1deg); } }
+@keyframes alarm { from { transform: rotate(-6deg) scale(1); } to { transform: rotate(6deg) scale(1.08); } }
+@keyframes scoldOwl { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg) translateY(-4px); } }
+@media (max-width: 640px) { .reta { padding: 16px 14px; } .reta-clock b { font-size: 1.3rem; } .rd { width: 27px; height: 27px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .reveal { opacity: 1; transform: none; } }
 </style>
 </head>
@@ -566,6 +618,7 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
         <div class="level" id="levelBox" hidden></div>
       </div>
     </div>
+    <div class="reta" id="reta" hidden></div>
     <div class="stats">
       <div class="stat" style="--c: var(--brand)"><span class="eyebrow">Meta de hoje</span><b id="stToday">0/10</b><div class="bar"><i id="stTodayBar" style="width:0%"></i></div><span class="sub" id="stTodayMsg">Comece a trilha de hoje.</span></div>
       <div class="stat" style="--c: var(--sun)"><span class="eyebrow">Sequência</span><b id="stStreak">0 dias</b><span class="sub" id="stStreakMsg">seguidos cumprindo a meta</span></div>
@@ -680,6 +733,7 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
 </main>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="win" id="win" hidden role="dialog" aria-modal="true" aria-labelledby="winTitle"><div class="win-card"><div class="owl" id="winSabi"></div><p class="reta-tag" id="winTag">🏁 Reta final</p><h2 id="winTitle"></h2><p id="winTxt"></p><div class="reta-days" id="winDays"></div><button type="button" class="btn sun" id="winMore" hidden>Fazer mais uma trilha</button><button type="button" class="btn sun" id="winOk">Continuar</button></div></div>
 <div class="gate" id="gate" hidden>
   <div class="gate-card" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
     <div class="owl" id="gateSabi"></div>
@@ -690,7 +744,7 @@ h2 { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-b
     <form id="gateForm" style="display:grid;gap:12px" autocomplete="off">
       <label class="field" for="gName">Seu nome<input id="gName" type="text" maxlength="30" placeholder="Ex.: Ana"></label>
       <div class="two" style="gap:10px">
-        <label class="field" for="gGoal">Meta por dia<select id="gGoal"><option value="40" selected>40 questões</option><option value="30">30 questões</option><option value="20">20 questões</option><option value="15">15 questões</option><option value="10">10 questões</option></select></label>
+        <label class="field" for="gGoal">Meta por dia<select id="gGoal"><option value="50" selected>50 questões</option><option value="40">40 questões</option><option value="30">30 questões</option><option value="20">20 questões</option><option value="15">15 questões</option><option value="10">10 questões</option></select></label>
         <label class="field" for="gDate">Data da prova<input id="gDate" type="date" value="2026-12-06"></label>
       </div>
       <p class="err" id="gErr" hidden>Digite seu nome para continuar.</p>
@@ -726,12 +780,14 @@ let DB = { profiles: [], current: null, voice: true };
 try { DB = Object.assign(DB, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
 if (!DB.exam27) { DB.profiles.forEach(p => { if (!p.exam || p.exam < "2026-12-06") p.exam = "2026-12-06"; }); DB.exam27 = true; try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} }
 if (!DB.goal40) { DB.profiles.forEach(p => { p.goal = 40; }); DB.goal40 = true; try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} }
+/* Reta final (22/11/2026): a meta passa a ser 50 questões por dia, o tamanho da prova. */
+if (!DB.goal50) { DB.profiles.forEach(p => { p.goal = 50; p.hits = 40; }); DB.goal50 = true; try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} }
 /* Um único aluno por aparelho. Se um aparelho antigo tiver mais de um, vale o que mais estudou (os outros ficam guardados, sem aparecer). */
 const owner = () => DB.profiles.length ? DB.profiles.reduce((a, b) => (b.log.length > a.log.length ? b : a)) : null;
 const me = () => { const o = owner(); return o && DB.current === o.id ? o : null; };
 function newProfile(name, goal, exam) {
-  const p = { id: "p" + Date.now().toString(36), name, goal: +goal || 40, exam: exam || "2026-12-06", created: dayKey(), days: {}, log: [], seen: {}, trail: null, exams: {} };
+  const p = { id: "p" + Date.now().toString(36), name, goal: +goal || 50, hits: 40, exam: exam || "2026-12-06", created: dayKey(), days: {}, log: [], seen: {}, trail: null, exams: {} };
   DB.profiles.push(p); DB.current = p.id; save(); return p;
 }
 
@@ -745,7 +801,7 @@ const PLAN = [
   { t: "Variação e geometria", p: "Variação linguística", m: "Perímetro, área e Pitágoras", c: "Energia e suas transformações", h: "Revolução Industrial e guerras" },
   { t: "Gramática e dados", p: "Pontuação e concordância", m: "Gráficos, tabelas e estatística", c: "Movimento e eletricidade", h: "Urbanização e meio ambiente" },
   { t: "Revisão geral", p: "Revisar os temas com mais erros", m: "Revisar os temas com mais erros", c: "Revisar os temas com mais erros", h: "Geografia de São Paulo" },
-  { t: "Reta final", p: "Trilhas de 40 misturadas", m: "Trilhas de 40 misturadas", c: "Revisar os erros", h: "Descanso na véspera" }
+  { t: "Reta final", p: "Simulados de 50, como a prova", m: "Simulados de 50, como a prova", c: "Revisar os erros", h: "Descanso na véspera" }
 ];
 const CONTENT = {
   "Português": { d: "Leitura, gramática e gêneros", li: ["Interpretação de textos verbais e não verbais (tirinhas, charges, anúncios, infográficos)", "Gêneros textuais e sua finalidade: notícia, crônica, receita, carta, propaganda, poema", "Sentido de palavras no contexto; linguagem conotativa e denotativa", "Conectivos e relações de sentido (causa, concessão, conclusão, oposição)", "Figuras de linguagem: metáfora, comparação, personificação, ironia, hipérbole", "Variação linguística e adequação da linguagem", "Pontuação, concordância e regência"], tip: "Leia a pergunta antes do texto e volte ao texto para provar a resposta. Quase toda questão traz a resposta escrita no próprio texto." },
@@ -902,8 +958,8 @@ function projection(p) {
 const LVL = { bad: "prioridade", mid: "atenção", good: "bom", none: "poucos dados" };
 function streakOf(p) {
   let n = 0; const dt = new Date();
-  if (!((p.days[dayKey(dt)] || { q: 0 }).q >= p.goal)) dt.setDate(dt.getDate() - 1);
-  while ((p.days[dayKey(dt)] || { q: 0 }).q >= p.goal) { n++; dt.setDate(dt.getDate() - 1); }
+  if (!metDay(p, dayKey(dt))) dt.setDate(dt.getDate() - 1);
+  while (metDay(p, dayKey(dt))) { n++; dt.setDate(dt.getDate() - 1); }
   return n;
 }
 const weekOf = p => Math.max(0, Math.floor((new Date() - new Date(p.created + "T00:00:00")) / 86400000 / 7));
@@ -918,8 +974,9 @@ function renderPanel() {
   const today = p.days[dayKey()] || { q: 0, ok: 0 };
   $("#stToday").textContent = `${today.q}/${p.goal}`;
   $("#stTodayBar").style.width = Math.min(100, today.q / p.goal * 100) + "%";
-  $("#stTodayMsg").textContent = today.q >= p.goal ? "Meta cumprida hoje. Mandou bem!" : today.q ? `Faltam ${p.goal - today.q} questões.` : "Comece a trilha de hoje.";
-  $("#helloSub").textContent = today.q >= p.goal ? "Meta de hoje cumprida. Se quiser, faça mais uma trilha." : `Sua meta é ${p.goal} questões por dia. O Sabi corrige cada uma na hora.`;
+  const H = hitsOf(p), metT = metDay(p, dayKey()), okT = today.ok || 0;
+  $("#stTodayMsg").textContent = metT ? `Meta cumprida: ${okT} acertos. Mandou bem!` : today.q >= p.goal ? `Fez as ${p.goal}, mas acertou ${okT}. Faltam ${H - okT} acertos.` : today.q ? `Faltam ${p.goal - today.q} questões · meta: ${H} acertos.` : `Meta: ${p.goal} questões e ${H} acertos.`;
+  $("#helloSub").textContent = metT ? "Meta de hoje cumprida. Se quiser, faça mais uma trilha." : `Sua meta é fazer ${p.goal} questões e acertar pelo menos ${H}. O Sabi corrige cada uma na hora.`;
   const st = streakOf(p);
   $("#stStreak").textContent = st === 1 ? "1 dia" : `${st} dias`;
   const act7 = [...Array(7)].filter((_, i) => { const x = new Date(); x.setDate(x.getDate() - i); return (p.days[dayKey(x)] || { q: 0 }).q > 0; }).length;
@@ -961,6 +1018,7 @@ function renderPanel() {
   $("#advice").textContent = !p.log.length ? "A projeção aparece depois das primeiras questões." : weak && weak.gain ? `Foque em ${weak.a}: chegando a 80% de acerto nessa área, você ganha cerca de ${weak.gain} acertos na prova. A trilha já traz mais questões dela.` + (none.length ? ` Ainda falta treinar ${none.join(", ")}.` : "") : none.length ? `Você ainda não treinou ${none.join(", ")}.` : "Responda pelo menos 3 questões de cada área para ver a recomendação.";
   $("#myProgress").innerHTML = parentView(p, true);
   renderLevel();
+  renderReta();
 }
 
 /* ===== questões normalizadas ===== */
@@ -990,13 +1048,34 @@ function ofToQ(q, e) {
 const allOf = () => EXAMS.flatMap(e => e.q.filter(q => q.c >= 0).map(q => ofToQ(q, e))).filter(q => !q.tx || q.tx.ok !== false || q.tx.stem);
 
 /* ===== trilha diária: questões erradas voltam, inéditas primeiro, mais peso para a área mais fraca ===== */
+/* Meta do dia. A partir da reta final (22/11/2026): fazer as ${p.goal} questões E acertar pelo menos hitsOf(p) (40 de 50). Antes disso, só a quantidade. */
+const META_ACERTOS_DESDE = "2026-11-22";
+const hitsOf = p => p.hits || Math.round(p.goal * .8);
+const dayOf = (p, k) => p.days[k] || { q: 0, ok: 0 };
+function metDay(p, k) { const d = dayOf(p, k); return d.q >= p.goal && (k < META_ACERTOS_DESDE || (d.ok || 0) >= hitsOf(p)); }
+/* Quantas questões de cada área cabem em n, na mesma proporção das provas oficiais (maiores restos). */
+function examSeats(n) {
+  const cnt = {}; let tot = 0;
+  EXAMS.forEach(e => e.q.forEach(q => { if (q.area) { cnt[q.area] = (cnt[q.area] || 0) + 1; tot++; } }));
+  const share = AREAS.map(a => tot ? n * (cnt[a] || 0) / tot : n / 4), seats = share.map(Math.floor);
+  share.map((v, i) => [v - seats[i], i]).sort((x, y) => y[0] - x[0]).slice(0, n - seats.reduce((s, v) => s + v, 0)).forEach(([, i]) => seats[i]++);
+  return seats;
+}
 function buildTrail(p, area, salt = "") {
   const r = rng(hash(p.id + dayKey() + area + salt));
   let pool = Object.values(QMAP);
   if (area !== "mix") pool = pool.filter(q => q.area === area);
   const score = q => (p.seen[q.id + ":err"] ? -1 : 0) + (p.seen[q.id] || 0) * 2 + r();
   const n = p.goal; let picks = [];
-  if (area === "mix") {
+  if (area === "mix" && retaInfo(p)) {
+    /* Reta final: trilha no formato da prova. Só questões oficiais, com cada área no mesmo peso que tem na prova. */
+    const seats = examSeats(n), seen = new Set();
+    AREAS.forEach((a, ai) => {
+      const cand = pool.filter(q => q.area === a && q.official).sort((x, y) => score(x) - score(y));
+      for (const q of cand) { if (seen.has(q.id) || picks.filter(x => x.area === a).length >= seats[ai]) continue; seen.add(q.id); picks.push(q); }
+    });
+  }
+  if (area === "mix" && !retaInfo(p)) {
     const per = AREAS.map(a => { const acc = accuracy(p.log.filter(x => x[1] === a)); return { a, w: acc === null ? 1 : 1.6 - acc }; });
     const tot = per.reduce((s, x) => s + x.w, 0);
     const quota = per.map(x => ({ a: x.a, k: Math.max(1, Math.round(n * x.w / tot)) }));
@@ -1007,6 +1086,8 @@ function buildTrail(p, area, salt = "") {
       const own = cand.filter(q => !q.official), of = cand.filter(q => q.official);
       for (let i = 0; i < k; i++) { const src = (i % 3 === 0 && own.length) ? own : (of.length ? of : own); if (src.length) picks.push(src.shift()); }
     });
+  }
+  if (area === "mix") {
     for (let i = picks.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [picks[i], picks[j]] = [picks[j], picks[i]]; }
     /* intercala: nunca duas etapas seguidas da mesma área ou do mesmo tema */
     const out = []; let rest = picks;
@@ -1211,16 +1292,16 @@ function parentView(p, noToday) {
   const tk = dayKey(), PJ = projection(p), S = progressSeries(p);
   const day = k => { let q = (p.days[k] || { q: 0 }).q, ok = 0, n = 0; p.log.forEach(([ts, , o]) => { if (kOf(new Date(ts)) === k) { n++; if (o) ok++; } }); q = Math.max(q, n); return { q, ok: Math.min(ok, q), err: Math.max(0, n - ok) }; };
   const T = day(tk), left = Math.max(0, p.goal - T.q);
-  const pill = T.q >= p.goal ? `<span class="pv-pill good">✓ Meta cumprida</span>` : T.q > 0 ? `<span class="pv-pill mid">Em andamento</span>` : `<span class="pv-pill none">Ainda não começou</span>`;
+  const pill = metDay(p, tk) ? `<span class="pv-pill good">✓ Meta cumprida</span>` : T.q >= p.goal ? `<span class="pv-pill mid">Acertos abaixo da meta</span>` : T.q > 0 ? `<span class="pv-pill mid">Em andamento</span>` : `<span class="pv-pill none">Ainda não começou</span>`;
   const hoje = `<div class="pv-card"><div class="pv-top"><span class="eyebrow">Hoje</span>${pill}</div>
     <p class="pv-big">${T.q} <small>de ${p.goal} questões</small></p>
     <div class="pv-bar"><i class="ok" style="width:${Math.min(100, T.ok / p.goal * 100)}%"></i><i class="err" style="width:${Math.min(100 - Math.min(100, T.ok / p.goal * 100), T.err / p.goal * 100)}%"></i></div>
-    <p class="pv-txt"><b class="t-ok">${T.ok} ${T.ok === 1 ? "certa" : "certas"}</b> e <b class="t-err">${T.err} ${T.err === 1 ? "erro" : "erros"}</b>.${left ? ` Faltam ${left} para a meta.` : ""}</p></div>`;
+    <p class="pv-txt"><b class="t-ok">${T.ok} ${T.ok === 1 ? "certa" : "certas"}</b> e <b class="t-err">${T.err} ${T.err === 1 ? "erro" : "erros"}</b>. Meta: ${p.goal} questões e <b>${hitsOf(p)} acertos</b>.${left ? ` Faltam ${left} questões.` : ""}</p></div>`;
   const wd = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"]; let met = 0, tiles = "";
-  for (let i = 6; i >= 0; i--) { const d = new Date(dOf(tk).getTime() - i * DAY_MS), k = kOf(d), x = day(k), st = x.q >= p.goal ? "good" : x.q > 0 ? "mid" : "none"; if (st === "good") met++;
+  for (let i = 6; i >= 0; i--) { const d = new Date(dOf(tk).getTime() - i * DAY_MS), k = kOf(d), x = day(k), st = metDay(p, k) ? "good" : x.q > 0 ? "mid" : "none"; if (st === "good") met++;
     tiles += `<div class="pv-day ${st}${i === 0 ? " today" : ""}" title="${br(k)}: ${x.q} questões, ${x.ok} certas"><span>${i === 0 ? "hoje" : wd[d.getDay()]}</span><b>${x.q || "–"}</b><small>${st === "good" ? "✓" : st === "mid" ? "parcial" : "não fez"}</small></div>`; }
   const semana = `<div class="pv-card"><div class="pv-top"><span class="eyebrow">Últimos 7 dias</span></div><div class="pv-days">${tiles}</div>
-    <p class="pv-txt">Cumpriu a meta de ${p.goal} em <b>${met} de 7 dias</b>.</p></div>`;
+    <p class="pv-txt">Cumpriu a meta em <b>${met} de 7 dias</b>.</p></div>`;
   const now = Date.now(), wk = p.log.filter(x => now - x[0] < 7 * DAY_MS), prev = p.log.filter(x => now - x[0] >= 7 * DAY_MS && now - x[0] < 14 * DAY_MS);
   const accAll = p.log.length ? p.log.filter(x => x[2]).length / p.log.length : null;
   const accWk = wk.length ? wk.filter(x => x[2]).length / wk.length : null, accPrev = prev.length >= 10 ? prev.filter(x => x[2]).length / prev.length : null;
@@ -1343,8 +1424,13 @@ function celebrate(ok, art, trail) {
   if (ok && combo > 0 && combo % 5 === 0) toast(`🔥 <b>${combo} acertos seguidos!</b> Você está pegando fogo.`, "hot");
   const p = me();
   if (p) {
-    const q = (p.days[dayKey()] || { q: 0 }).q;
-    if (trail && q === p.goal) { setTimeout(() => confetti(160), 250); toast(`🏆 <b>Meta do dia cumprida!</b> ${p.goal} questões. Parabéns, ${esc(p.name)}!`, "gold"); speak(`Parabéns, ${p.name}! Você cumpriu a meta de hoje.`); }
+    const tk = dayKey(), q = dayOf(p, tk).q;
+    if (trail && metDay(p, tk) && p.winDay !== tk) {
+      p.winDay = tk; save();
+      if (!retaInfo(p)) party();
+      if (retaInfo(p)) setTimeout(() => retaWin(p), 900);
+      else { toast(`🏆 <b>Meta do dia cumprida!</b> Parabéns, ${esc(p.name)}!`, "gold"); speak(`Parabéns, ${p.name}! Você cumpriu a meta de hoje.`); }
+    } else if (trail && q === p.goal && !metDay(p, tk)) setTimeout(() => retaScold(p), 900);
   }
   renderLevel();
 }
@@ -1363,6 +1449,120 @@ function renderLevel() {
   if (p.lv !== undefined && L0.lv > p.lv) { confetti(140); toast(`⭐ <b>Subiu de nível!</b> Agora você é ${L0.name}.`, "gold"); speak(`Você subiu de nível! Agora você é ${L0.name}.`); }
   if (p.lv !== L0.lv) { p.lv = L0.lv; save(); }
 }
+/* Festa da meta: balões subindo, fogos de artifício com estouro e uma fanfarra. */
+function boom(t0, vol = .5) {
+  const n = actx.sampleRate * .6, buf = actx.createBuffer(1, n, actx.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3) * (Math.random() < .02 ? 1 : .6);
+  const src = actx.createBufferSource(), g = actx.createGain(), lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1800;
+  src.buffer = buf; g.gain.value = vol; src.connect(lp).connect(g).connect(actx.destination); src.start(t0);
+}
+function fanfare() {
+  if (DB.sfx === false) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)(); const t0 = actx.currentTime + .05;
+    [[523, 0, .15], [659, .15, .15], [784, .3, .15], [1047, .45, .5], [784, .95, .15], [1047, 1.1, .7]].forEach(([f, at, du]) => {
+      const o = actx.createOscillator(), g = actx.createGain(); o.type = "square"; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, t0 + at); g.gain.exponentialRampToValueAtTime(.09, t0 + at + .02); g.gain.exponentialRampToValueAtTime(.0001, t0 + at + du);
+      o.connect(g).connect(actx.destination); o.start(t0 + at); o.stop(t0 + at + du + .05); });
+    [2, 2.5, 3.1, 3.5, 4.2, 4.6, 5.3].forEach(at => boom(t0 + at, .35 + Math.random() * .3));
+  } catch (e) {}
+}
+function fireworks(ms = 6500) {
+  const cv = document.createElement("canvas"); cv.className = "confetti"; document.body.append(cv);
+  const W = cv.width = innerWidth, H = cv.height = innerHeight, cx = cv.getContext("2d"), ps = [], cols = ["#ffd23d", "#ff6fb5", "#6dffa8", "#7fd4ff", "#ff7a3d", "#c49bff", "#fff"];
+  const shells = [2000, 2500, 3100, 3500, 4200, 4600, 5300].map(at => ({ at, x: W * (.15 + Math.random() * .7), y: H * (.12 + Math.random() * .3) }));
+  const t0 = performance.now();
+  (function step(t) {
+    const el = t - t0;
+    shells.forEach(sh => { if (!sh.done && el >= sh.at) { sh.done = true; const c = cols[Math.floor(Math.random() * cols.length)];
+      for (let i = 0; i < 70; i++) { const a = Math.PI * 2 * i / 70, v = 2 + Math.random() * 4; ps.push({ x: sh.x, y: sh.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, c }); } } });
+    cx.fillStyle = "rgba(0,0,0,0)"; cx.clearRect(0, 0, W, H);
+    ps.forEach(p => { p.vy += .05; p.vx *= .985; p.vy *= .985; p.x += p.vx; p.y += p.vy; p.life -= .012; if (p.life > 0) { cx.globalAlpha = p.life; cx.fillStyle = p.c; cx.beginPath(); cx.arc(p.x, p.y, 2.6, 0, 7); cx.fill(); } });
+    if (el < ms) requestAnimationFrame(step); else cv.remove();
+  })(t0);
+}
+function balloons(n = 16) {
+  const box = document.createElement("div"); box.className = "balloons"; document.body.append(box);
+  const cols = ["#e8303a", "#ffa800", "#0f9d47", "#1a56f0", "#7b2ff2", "#ff6fb5", "#00b8d9"];
+  for (let i = 0; i < n; i++) { const b = document.createElement("span"); b.className = "balloon";
+    b.style.cssText = `--c:${cols[i % cols.length]};left:${Math.random() * 92}%;animation-duration:${5 + Math.random() * 3}s,${1.6 + Math.random()}s;animation-delay:${Math.random() * 1.5}s,0s;transform:scale(${.8 + Math.random() * .5})`;
+    box.append(b); }
+  setTimeout(() => box.remove(), 10000);
+}
+function party() {
+  fanfare(); confetti(200);
+  if (calm()) return;
+  balloons(); fireworks();
+}
+/* ===== reta final: as duas últimas semanas antes da prova ===== */
+const RETA_DIAS = 14;
+function retaInfo(p) {
+  if (!p || !p.exam) return null;
+  const ex = new Date(p.exam + "T00:00:00"), hoje = new Date(dayKey() + "T00:00:00"), diff = Math.round((ex - hoje) / 86400000);
+  if (diff < 0 || diff > RETA_DIAS) return null;
+  const days = [...Array(RETA_DIAS)].map((_, i) => { const d = new Date(ex); d.setDate(d.getDate() - RETA_DIAS + i); return dayKey(d); });
+  const met = days.filter(k => metDay(p, k)).length;
+  return { diff, days, met, when: new Date(p.exam + (p.exam === "2026-12-06" ? "T13:30:00" : "T08:00:00")) };
+}
+function retaDots(p, R) {
+  const tk = dayKey();
+  return R.days.map(k => { const d = dayOf(p, k), q = d.q, ok = metDay(p, k), st = ok ? "ok" : k === tk ? "now" : k < tk ? (q ? "mid" : "miss") : "fut";
+    return `<span class="rd ${st}" title="${k.split("-").reverse().slice(0, 2).join("/")}: ${q} questões, ${d.ok || 0} acertos">${ok ? "★" : Number(k.slice(8))}</span>`; }).join("");
+}
+const RETA_FRASES = ["Cada questão de hoje é um ponto a mais na prova.", "Falta pouco. Constância agora faz toda a diferença!", "Você já chegou longe. Agora é só manter o ritmo.", "Treinar no formato da prova deixa você mais tranquilo no dia.", "A vaga na Etec está cada vez mais perto!"];
+let retaTick = 0;
+function renderReta() {
+  const box = $("#reta"), p = me(), R = retaInfo(p);
+  if (!box) return;
+  if (!R) { box.hidden = true; clearInterval(retaTick); retaTick = 0; return; }
+  const D = dayOf(p, dayKey()), q = D.q, okd = D.ok || 0, H = hitsOf(p), done = metDay(p, dayKey()), short = q >= p.goal && !done;
+  const head = R.diff === 0 ? "É hoje! Boa prova! 🍀" : R.diff === 1 ? "A prova é amanhã!" : `Faltam ${R.diff} dias para a prova!`;
+  const frase = done ? `✓ Meta de hoje cumprida! ${okd} acertos. Mandou muito bem, ${esc(p.name)}!` : short ? `⚠️ Você fez as ${p.goal}, mas acertou ${okd}. Faltam <b>${H - okd} acertos</b> para a meta. Faça mais uma trilha!` : R.diff === 0 ? "Respire fundo, leia com calma e confie no que você treinou." : RETA_FRASES[Number(dayKey().slice(8)) % RETA_FRASES.length];
+  box.hidden = false; box.classList.toggle("done", done); box.classList.toggle("short", short);
+  box.innerHTML = `<div class="reta-top"><span class="reta-tag">🏁 Reta final</span><span class="reta-when">Prova: ${p.exam.split("-").reverse().join("/")}${p.exam === "2026-12-06" ? ", domingo, às 13h30" : ""}</span></div>
+    <h2 class="reta-h">${head}</h2>
+    ${R.diff > 0 ? `<div class="reta-clock" id="retaClock" aria-label="Tempo até a prova"></div>` : ""}
+    ${R.diff > 0 ? `<div class="reta-today"><span>Questões</span><div class="reta-bar"><i style="width:${Math.min(100, q / p.goal * 100)}%"></i></div><b>${Math.min(q, p.goal)} de ${p.goal}</b>
+      <span>Acertos</span><div class="reta-bar hit"><i style="width:${Math.min(100, okd / H * 100)}%"></i></div><b>${Math.min(okd, H)} de ${H}</b></div>` : ""}
+    <p class="reta-msg">${frase}</p>
+    <div class="reta-days">${retaDots(p, R)}</div>
+    <p class="reta-sum">${R.met ? `<b>${R.met} ${R.met === 1 ? "dia cumprido" : "dias cumpridos"}</b> de ${RETA_DIAS} na reta final. Cada ★ é um dia com ${p.goal} questões e pelo menos ${H} acertos.` : `Faça as ${p.goal} questões e acerte pelo menos ${H} para ganhar sua primeira ★ da reta final.`}</p>`;
+  const tick = () => {
+    const el = $("#retaClock"); if (!el) return;
+    let s = Math.max(0, Math.floor((R.when - new Date()) / 1000));
+    const d = Math.floor(s / 86400); s %= 86400; const h = Math.floor(s / 3600); s %= 3600; const m = Math.floor(s / 60); s %= 60;
+    el.innerHTML = [[d, "dias"], [h, "horas"], [m, "min"], [s, "seg"]].map(([v, t]) => `<span><b>${String(v).padStart(2, "0")}</b><small>${t}</small></span>`).join("");
+  };
+  tick(); if (!retaTick) retaTick = setInterval(tick, 1000);
+}
+function retaWin(p) {
+  const R = retaInfo(p); if (!R) return;
+  const ok = (p.days[dayKey()] || { ok: 0 }).ok || 0;
+  $("#winTitle").textContent = `🎉 Parabéns, ${p.name}! 🎉`;
+  $("#winTxt").innerHTML = `Você acertou <b>${ok} de ${p.goal}</b> e bateu a meta! Todo o seu esforço e a sua dedicação estão aparecendo. Estou muito, muito feliz com você! Com esse resultado, a vaga na Etec está pertinho.<br>${R.met >= 2 ? `Já são <b>${R.met} dias</b> cumpridos na reta final. Que orgulho!` : "Primeira ★ da reta final conquistada!"}`;
+  $("#winDays").innerHTML = retaDots(p, R);
+  put($("#winSabi"), "happy");
+  $("#win").classList.remove("scold"); $("#winTag").textContent = "🏁 Reta final"; $("#winOk").textContent = "Continuar"; $("#winMore").hidden = true;
+  $("#win").hidden = false; $("#winOk").focus();
+  party();
+  speak(`Parabéns, ${p.name}! Você acertou ${ok} questões e bateu a meta! Todo o seu esforço valeu a pena. Estou muito feliz e muito orgulhoso de você! ${R.met >= 2 ? `Já são ${R.met} dias cumpridos na reta final.` : ""}`);
+}
+/* Puxão de orelha: fez as questões do dia, mas acertou menos que a meta. */
+function retaScold(p) {
+  const H = hitsOf(p), ok = dayOf(p, dayKey()).ok || 0, falta = H - ok;
+  $("#winTitle").textContent = `Ei, ${p.name}! Acorda! ⏰`;
+  $("#winTxt").innerHTML = `Você fez as ${p.goal} questões, mas acertou só <b>${ok}</b>. A meta é <b>${H} acertos</b>: faltaram <b>${falta}</b>.<br>O vestibulinho está chegando e a nota de corte é alta. Leia com calma, revise os erros e faça mais uma trilha. Eu sei que você consegue!`;
+  $("#winDays").innerHTML = "";
+  put($("#winSabi"), "think");
+  $("#win").classList.add("scold"); $("#winTag").textContent = "⏰ Hora de se esforçar"; $("#winOk").textContent = "Revisar meus erros"; $("#winMore").hidden = false;
+  $("#win").hidden = false; $("#winMore").focus();
+  speak(`Ei, ${p.name}! Você acertou só ${ok}. A meta é ${H} acertos. O vestibulinho está chegando e a nota de corte é alta. Bora se esforçar! Faça mais uma trilha.`);
+}
+document.addEventListener("click", e => {
+  if (e.target.id === "winMore") { $("#win").hidden = true; startTrail(String(Date.now())); $("#trilha").scrollIntoView({ behavior: "smooth" }); renderReta(); return; }
+  if (e.target.id === "winOk" || e.target.id === "win") { const scold = $("#win").classList.contains("scold"); $("#win").hidden = true; renderReta(); if (scold) $("#player")?.scrollIntoView({ behavior: "smooth" }); }
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#win").hidden) $("#win").hidden = true; });
 /* Sabi vivo: os olhos seguem o dedo ou o mouse, e tocar nele faz ele pular e falar. */
 let lookRaf = 0;
 function lookAt(x, y) {
