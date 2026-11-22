@@ -1309,7 +1309,8 @@ function parentView(p, noToday) {
   const pct = accAll === null ? null : Math.round(accAll * 100);
   const acertos = `<div class="pv-card"><div class="pv-top"><span class="eyebrow">Acertos</span>${trend}</div>
     <p class="pv-big">${pct === null ? "–" : pct + "%"} <small>${pct === null ? "ainda sem respostas" : "das questões respondidas"}</small></p>
-    <p class="pv-txt">${p.log.length < 10 ? "Ainda são poucas questões para medir bem. Depois de umas 40, o número fica confiável." : `Nas ${p.goal} questões do dia, acerta em média <b>${Math.round(accAll * p.goal)}</b> e erra <b>${p.goal - Math.round(accAll * p.goal)}</b>.`}</p></div>`;
+    <p class="pv-txt">${p.log.length < 10 ? `A meta é acertar <b>${hitsOf(p)} de cada ${p.goal}</b> questões (${Math.round(hitsOf(p) / p.goal * 100)}%). Depois das primeiras ${p.goal} questões, este número fica confiável.` : (() => { const m = Math.round(accAll * p.goal), H = hitsOf(p);
+      return `Nas ${p.goal} questões do dia, acerta em média <b>${m}</b> e erra <b>${p.goal - m}</b>. ${m >= H ? `<b class="t-ok">Está na meta de ${H} acertos.</b>` : `A meta é <b>${H}</b>: faltam <b class="t-err">${H - m} acertos</b> por dia.`}`; })()}</p></div>`;
   const planned = p.goal * S.n, done = p.log.length, pDone = Math.min(100, done / planned * 100), pShould = Math.min(100, p.goal * (S.ti + 1) / planned * 100);
   const daysLeft = S.n - 1 - S.ti, behind = p.goal * (S.ti + 1) - done;
   const prova = `<div class="pv-card${noToday ? " wide" : ""}"><div class="pv-top"><span class="eyebrow">Até a prova</span><span class="pv-pill none">${daysLeft} ${daysLeft === 1 ? "dia" : "dias"} · ${br(p.exam || "2026-12-06")}</span></div>
